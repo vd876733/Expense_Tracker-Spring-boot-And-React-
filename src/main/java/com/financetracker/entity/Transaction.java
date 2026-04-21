@@ -3,10 +3,11 @@ package com.financetracker.entity;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
@@ -16,7 +17,6 @@ import java.time.LocalDate;
 @Audited
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-@AllArgsConstructor
 public class Transaction {
 
     @Id
@@ -24,16 +24,21 @@ public class Transaction {
     private Long id;
 
     @Column(nullable = false)
+    @JsonProperty("description")
     private String description;
 
     @Column(nullable = false)
+    @JsonProperty("amount")
     private Double amount;
 
     @Column(nullable = false)
+    @JsonProperty("date")
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate date;
 
     @Column(nullable = false)
+    @JsonProperty("category")
     private String category;
 
     // We keep this temporarily to receive data from Frontend, 

@@ -5,9 +5,13 @@ import com.financetracker.dto.CategoryTotalDTO;
 import com.financetracker.dto.DailySpendingDTO;
 import com.financetracker.dto.MonthlyIncomeExpenseDTO;
 import com.financetracker.entity.Transaction;
+import com.financetracker.entity.User;
+import com.financetracker.exception.InsufficientBalanceException;
 import com.financetracker.repository.TransactionRepository;
 import com.financetracker.repository.UserRepository;
 import com.financetracker.service.TransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +19,8 @@ import org.springframework.data.history.RevisionMetadata;
 import org.springframework.data.history.Revisions;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -29,6 +35,8 @@ import java.util.Optional;
 @RequestMapping("/api/transactions")
 @CrossOrigin(origins = "${ALLOWED_ORIGINS:http://localhost:3000,https://your-app.netlify.app}")
 public class TransactionController {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -173,14 +181,25 @@ public class TransactionController {
      */
     @PostMapping
     public ResponseEntity<?> createTransaction(@RequestBody Transaction transaction,
-                                               @AuthenticationPrincipal(expression = "username") String principalName,
-                                               Authentication authentication) {
-        String resolvedEmail = resolveEmail(authentication, principalName);
+                                               @AuthenticationPrincipal OAuth2User principal) {
+        String resolvedEmail = null;
+        if (principal != null) {
+            Object emailAttr = principal.getAttribute("email");
+            if (emailAttr != null) {
+                resolvedEmail = emailAttr.toString();
+            }
+        }
+        if (resolvedEmail == null || resolvedEmail.isBlank()) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            resolvedEmail = resolveEmail(authentication);
+        }
         if (resolvedEmail == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        transaction.setUserEmail(resolvedEmail);
-        User currentUser = userRepository.findByEmailIgnoreCase(resolvedEmail)
+        String normalizedEmail = resolvedEmail.trim().toLowerCase();
+        transaction.setUserEmail(normalizedEmail);
+        User currentUser = userRepository.findByEmail(normalizedEmail)
+            .or(() -> userRepository.findByEmailIgnoreCase(normalizedEmail))
                 .orElse(null);
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -189,7 +208,13 @@ public class TransactionController {
         try {
             Transaction savedTransaction = transactionService.addTransaction(transaction);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
+        } catch (InsufficientBalanceException ex) {
+            log.warn("Transaction rejected due to insufficient balance: {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", ex.getMessage()));
         } catch (Exception ex) {
+            log.error("Error saving transaction: ", ex);
+            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Failed to save transaction", "error", ex.getMessage()));
         }

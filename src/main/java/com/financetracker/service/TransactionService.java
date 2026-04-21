@@ -57,9 +57,9 @@ public class TransactionService {
             throw new IllegalStateException("Resolved user is required for transaction");
         }
 
-        Double totalIncome = transactionRepository.sumIncomeByUserEmail(email);
-        Double totalSpent = transactionRepository.sumExpensesByUserEmail(email);
-        double availableBalance = (totalIncome != null ? totalIncome : 0.0) - (totalSpent != null ? totalSpent : 0.0);
+        Double configuredIncome = user.getTotalIncome() != null ? user.getTotalIncome() : 0.0;
+        Double totalSpent = transactionRepository.getTotalSumByUserEmail(email);
+        double availableBalance = configuredIncome - (totalSpent != null ? totalSpent : 0.0);
         if (transaction.getAmount() > availableBalance) {
             throw new InsufficientBalanceException("Insufficient balance for this transaction");
         }

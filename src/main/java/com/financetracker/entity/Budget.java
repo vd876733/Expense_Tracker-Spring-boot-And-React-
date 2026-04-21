@@ -2,7 +2,6 @@ package com.financetracker.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
     @UniqueConstraint(columnNames = {"category", "user_id"})
 })
 @NoArgsConstructor
-@AllArgsConstructor
 public class Budget {
 
     @Id

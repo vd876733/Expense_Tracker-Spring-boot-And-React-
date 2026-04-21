@@ -1,14 +1,12 @@
 package com.financetracker.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "recurring_transactions")
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class RecurringTransaction {
 
