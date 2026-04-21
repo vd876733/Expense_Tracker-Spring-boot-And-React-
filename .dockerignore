@@ -1,0 +1,11 @@
+target
+**/target
+*.log
+*.tmp
+*.swp
+.idea
+.vscode
+.DS_Store
+node_modules
+frontend/node_modules
+frontend/build
