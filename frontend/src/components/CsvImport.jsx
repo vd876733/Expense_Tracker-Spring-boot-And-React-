@@ -45,6 +45,14 @@ const CsvImport = ({ onImportSuccess }) => {
     setResult(null);
 
     try {
+      // DEBUG: Log token before sending
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('jwt') || localStorage.getItem('jwtToken');
+      console.log('[CsvImport] Token being sent:', token ? token.substring(0, 30) + '...' : 'NO TOKEN FOUND');
+      console.log('[CsvImport] Token is null/undefined?', token === null || token === undefined);
+      console.log('[CsvImport] Token is string "null"?', token === 'null');
+      console.log('[CsvImport] Full token value:', token);
+      console.log('[CsvImport] Uploading file:', file.name, 'Size:', file.size, 'bytes');
+
       const importResult = await importTransactionsFromCsv(file);
       setResult(importResult);
 

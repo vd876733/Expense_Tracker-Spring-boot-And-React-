@@ -3,17 +3,15 @@ package com.financetracker.config;
 import com.financetracker.security.CustomUserDetailsService;
 import com.financetracker.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -27,71 +25,75 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${ALLOWED_ORIGINS:http://localhost:3000,https://your-app.netlify.app}")
-    private String allowedOrigins;
-
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**").disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authz -> authz
-                        // 1. Allow preflight OPTIONS requests
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                    // Allow favicon to avoid proxy 403s
-                    .requestMatchers("/favicon.ico").permitAll()
-                        
-                        // 2. Allow login/signup and Google auth
-                        .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
-                        
-                        // 3. Secure history endpoint specifically for GET calls
-                        .requestMatchers(HttpMethod.GET, "/api/transactions/*/history").authenticated()
-                        
-                        // 4. Secure all other transaction actions
-                        .requestMatchers("/api/transactions/**").authenticated()
-                        
-                        // 5. Any other request must be authenticated
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
+                        // CSV Import explicitly requires authentication
+                        .requestMatchers("/api/import/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                    .headers(headers -> headers
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            System.err.println("[SECURITY] 401 Unauthorized: path=" + request.getRequestURI() 
+                                    + " reason=" + authException.getMessage());
+                            System.err.println("[SECURITY] Authorization header present? " + 
+                                    (request.getHeader("Authorization") != null));
+                            response.sendError(401, "Unauthorized - Missing or invalid authentication");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            System.err.println("[SECURITY] 403 Access Denied: method=" + request.getMethod()
+                                    + " path=" + request.getRequestURI()
+                                    + " reason=" + accessDeniedException.getMessage());
+                            response.sendError(403, "Forbidden");
+                        })
+                )
+                .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter(
-                            "Cross-Origin-Opener-Policy",
-                            "same-origin-allow-popups"
+                                "Cross-Origin-Opener-Policy",
+                                "same-origin-allow-popups"
                         ))
-                    )
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        
-        // Added PUT and PATCH to support editing and auditing
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
-        configuration.setAllowCredentials(true);
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration authConfiguration = new CorsConfiguration();
+                authConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+                authConfiguration.setAllowCredentials(true);
+                authConfiguration.setAllowedMethods(Arrays.asList("POST", "OPTIONS"));
+                authConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+                configuration.setAllowCredentials(true);
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/api/v1/auth/**", authConfiguration);
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -99,7 +101,7 @@ public class SecurityConfig {
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
                 .userDetailsService(customUserDetailsService)
-                .passwordEncoder(passwordEncoder());
+                .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 }

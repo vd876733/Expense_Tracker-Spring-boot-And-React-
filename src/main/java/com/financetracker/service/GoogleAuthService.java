@@ -65,7 +65,8 @@ public class GoogleAuthService {
 
         User user = upsertUserFromGoogle(email, fullName, pictureUrl);
         String principal = hasText(user.getUsername()) ? user.getUsername() : user.getEmail();
-        String jwt = tokenProvider.generateTokenFromUsername(principal);
+        // FIX: Generate JWT with email claim for authentication context in ImportService
+        String jwt = tokenProvider.generateTokenFromUsernameAndEmail(principal, email);
 
         GoogleAuthResponse.UserProfile profile = new GoogleAuthResponse.UserProfile(
                 user.getId(),

@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Import Controller
@@ -29,34 +31,61 @@ public class ImportController {
      * Import transactions from CSV file
      * 
      * @param file the CSV file to import
-     * @return CsvImportResultDTO with import results
+     * @return Map with import results
      */
     @PostMapping("/transactions/csv")
-    public ResponseEntity<CsvImportResultDTO> importTransactionsCsv(
+    public ResponseEntity<Map<String, Object>> importTransactionsCsv(
             @RequestParam("file") MultipartFile file) {
+        
+        System.out.println("[IMPORT_CONTROLLER] CSV import request received. File: " + file.getOriginalFilename() + ", Size: " + file.getSize());
         
         // Validate file
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+            System.out.println("[IMPORT_CONTROLLER] ERROR: File is empty");
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "File is empty");
+            return ResponseEntity.badRequest().body(response);
         }
 
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".csv")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CsvImportResultDTO(0, 0, 0, 
-                            List.of("File must be a CSV file"), 
-                            List.of()));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "File must be a CSV file");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         try {
             CsvImportResultDTO result = importService.importTransactionsFromCsv(file);
-            return ResponseEntity.ok(result);
+            Map<String, Object> response = new HashMap<>();
+            
+            // Check if there are any errors (including authentication errors)
+            boolean hasErrors = !result.getErrors().isEmpty();
+            boolean success = !hasErrors && result.getFailedRecords() == 0;
+            
+            response.put("success", success);
+            response.put("message", hasErrors && result.getSuccessfulRecords() == 0 ? 
+                    result.getErrors().get(0) : "Import completed successfully");
+            response.put("totalRecords", result.getTotalRecords());
+            response.put("successfulRecords", result.getSuccessfulRecords());
+            response.put("failedRecords", result.getFailedRecords());
+            response.put("importedTransactionIds", result.getImportedTransactionIds());
+            
+            if (!result.getErrors().isEmpty()) {
+                response.put("errors", result.getErrors());
+            }
+            
+            // Return appropriate status code based on success
+            HttpStatus status = success ? HttpStatus.OK : 
+                    (hasErrors && result.getSuccessfulRecords() == 0 ? HttpStatus.UNAUTHORIZED : HttpStatus.PARTIAL_CONTENT);
+            return ResponseEntity.status(status).body(response);
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CsvImportResultDTO(0, 0, 0, 
-                            List.of("Error processing file: " + ex.getMessage()), 
-                            List.of()));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error processing file: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

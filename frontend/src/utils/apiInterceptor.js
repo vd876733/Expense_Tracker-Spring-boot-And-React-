@@ -9,7 +9,26 @@ class ApiInterceptor {
 
   // Get the current token from localStorage
   getToken() {
-    return localStorage.getItem('token');
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('jwt') ||
+      localStorage.getItem('jwtToken')
+    );
+  }
+
+  clearAuthState() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userId');
+  }
+
+  redirectToLogin() {
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login');
+    }
   }
 
   // Create headers with Authorization if token exists
@@ -30,6 +49,19 @@ class ApiInterceptor {
   // Generic fetch wrapper with authentication
   async request(url, options = {}) {
     const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
+    const token = this.getToken();
+
+    console.debug('[apiInterceptor] request', {
+      method: options.method || 'GET',
+      url: fullUrl,
+      hasToken: Boolean(token),
+    });
+
+    if (!token) {
+      this.redirectToLogin();
+      throw new Error('No auth token found - redirecting to login');
+    }
+
     const headers = this.getHeaders(options.headers);
 
     const response = await fetch(fullUrl, {
@@ -37,12 +69,16 @@ class ApiInterceptor {
       headers,
     });
 
-    // Handle unauthorized responses
+    // Handle unauthenticated requests globally
     if (response.status === 401) {
-      // Token might be expired, clear it
-      localStorage.removeItem('token');
-      window.location.reload(); // Force re-render to show login
-      throw new Error('Unauthorized - please login again');
+      this.clearAuthState();
+      this.redirectToLogin();
+      throw new Error('Unauthorized (401) - please login again');
+    }
+
+    // Keep session for authorization failures (forbidden)
+    if (response.status === 403) {
+      throw new Error('Forbidden (403) - insufficient permissions for this action');
     }
 
     return response;
@@ -76,22 +112,50 @@ class ApiInterceptor {
   // Handle file uploads (for CSV import)
   async upload(url, file, options = {}) {
     const token = this.getToken();
-    const headers = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+    console.log('[CSV_UPLOAD] Token retrieved from storage:', token ? token.substring(0, 30) + '...' : 'NO TOKEN');
+    
+    if (!token) {
+      console.error('[CSV_UPLOAD] FAILED: No auth token found in localStorage');
+      this.redirectToLogin();
+      throw new Error('No auth token found - redirecting to login');
     }
+
+    if (token === 'null' || token === 'undefined') {
+      console.error('[CSV_UPLOAD] FAILED: Token is string "null" or "undefined":', token);
+      this.clearAuthState();
+      this.redirectToLogin();
+      throw new Error('Invalid token value - redirecting to login');
+    }
+
+    const headers = {};
+    headers.Authorization = `Bearer ${token}`;
+    console.log('[CSV_UPLOAD] Authorization header set:', headers.Authorization.substring(0, 30) + '...');
 
     const formData = new FormData();
     formData.append('file', file);
+    console.log('[CSV_UPLOAD] File appended to FormData:', file.name, 'Size:', file.size);
 
     const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
+    console.log('[CSV_UPLOAD] Sending request to:', fullUrl);
 
-    return fetch(fullUrl, {
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers,
       body: formData,
       ...options,
     });
+
+    if (response.status === 401) {
+      this.clearAuthState();
+      this.redirectToLogin();
+      throw new Error('Unauthorized (401) - please login again');
+    }
+
+    if (response.status === 403) {
+      throw new Error('Forbidden (403) - insufficient permissions for this action');
+    }
+
+    return response;
   }
 }
 

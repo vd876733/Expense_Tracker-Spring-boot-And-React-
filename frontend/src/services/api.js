@@ -6,6 +6,7 @@ const apiClient = apiInterceptor;
 const API_ROUTES = {
   transactions: '/transactions',
   transactionById: (id) => `/transactions/${id}`,
+  transactionHistoryById: (id) => `/transactions/${id}/history`,
   transactionsTotal: '/transactions/summary/total',
   transactionsByCategory: (category) => `/transactions/summary/category/${category}`,
   transactionsByCategoryCurrentMonth: '/transactions/summary/category/current-month',
@@ -130,6 +131,24 @@ export const getTransactionById = async (id, options = {}) => {
     return await response.json();
   } catch (error) {
     console.error(`Error fetching transaction ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch a specific transaction history by ID
+ * @param {number} id - Transaction ID
+ * @returns {Promise<Array>} Transaction audit history
+ */
+export const getTransactionHistoryById = async (id, options = {}) => {
+  try {
+    const response = await apiClient.get(API_ROUTES.transactionHistoryById(id), options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching transaction history ${id}:`, error);
     throw error;
   }
 };

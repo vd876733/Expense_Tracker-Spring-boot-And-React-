@@ -136,7 +136,8 @@ public class TransactionController {
         if (transaction.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        if (!resolvedEmail.equalsIgnoreCase(transaction.get().getUserEmail())) {
+        String ownerEmail = resolveTransactionOwnerEmail(transaction.get());
+        if (ownerEmail == null || !resolvedEmail.trim().equalsIgnoreCase(ownerEmail.trim())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(transaction.get());
@@ -149,13 +150,22 @@ public class TransactionController {
     public ResponseEntity<List<AuditDTO>> getHistory(@PathVariable Long id, Authentication authentication) {
         String resolvedEmail = resolveEmail(authentication);
         if (resolvedEmail == null) {
+            log.warn("History rejected (401): transactionId={} principal={} reason=resolvedEmail_null",
+                    id,
+                    authentication != null ? authentication.getName() : "anonymous");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Optional<Transaction> transaction = transactionRepository.findById(id);
         if (transaction.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        if (!resolvedEmail.equalsIgnoreCase(transaction.get().getUserEmail())) {
+        String ownerEmail = resolveTransactionOwnerEmail(transaction.get());
+        if (ownerEmail == null || !resolvedEmail.trim().equalsIgnoreCase(ownerEmail.trim())) {
+            log.warn("History rejected (403): transactionId={} principal={} resolvedEmail={} ownerEmail={} reason=email_mismatch",
+                    id,
+                    authentication != null ? authentication.getName() : "anonymous",
+                    resolvedEmail,
+                    ownerEmail);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         Revisions<Integer, Transaction> revisions = transactionRepository.findRevisions(id);
@@ -235,7 +245,8 @@ public class TransactionController {
 
         if (existingTransaction.isPresent()) {
             Transaction transaction = existingTransaction.get();
-            if (!resolvedEmail.equalsIgnoreCase(transaction.getUserEmail())) {
+            String ownerEmail = resolveTransactionOwnerEmail(transaction);
+            if (ownerEmail == null || !resolvedEmail.trim().equalsIgnoreCase(ownerEmail.trim())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             transaction.setDescription(transactionDetails.getDescription());
@@ -257,16 +268,29 @@ public class TransactionController {
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, Authentication authentication) {
         String resolvedEmail = resolveEmail(authentication);
         if (resolvedEmail == null) {
+            log.warn("Delete rejected (401): transactionId={} principal={} reason=resolvedEmail_null",
+                    id,
+                    authentication != null ? authentication.getName() : "anonymous");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Optional<Transaction> existingTransaction = transactionRepository.findById(id);
         if (existingTransaction.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        if (!resolvedEmail.equalsIgnoreCase(existingTransaction.get().getUserEmail())) {
+        String ownerEmail = resolveTransactionOwnerEmail(existingTransaction.get());
+        if (ownerEmail == null || !resolvedEmail.trim().equalsIgnoreCase(ownerEmail.trim())) {
+            log.warn("Delete rejected (403): transactionId={} principal={} resolvedEmail={} ownerEmail={} reason=email_mismatch",
+                    id,
+                    authentication != null ? authentication.getName() : "anonymous",
+                    resolvedEmail,
+                    ownerEmail);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         transactionRepository.deleteById(id);
+        log.info("Delete allowed (204): transactionId={} principal={} resolvedEmail={}",
+                id,
+                authentication != null ? authentication.getName() : "anonymous",
+                resolvedEmail);
         return ResponseEntity.noContent().build();
     }
 
@@ -424,5 +448,15 @@ public class TransactionController {
 
     private String resolveEmail(Authentication authentication) {
         return resolveEmail(authentication, null);
+    }
+
+    private String resolveTransactionOwnerEmail(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+        if (transaction.getUser() != null && transaction.getUser().getEmail() != null) {
+            return transaction.getUser().getEmail();
+        }
+        return transaction.getUserEmail();
     }
 }

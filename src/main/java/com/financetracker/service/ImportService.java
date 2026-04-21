@@ -3,30 +3,37 @@ package com.financetracker.service;
 import com.financetracker.dto.CsvImportResultDTO;
 import com.financetracker.dto.CsvTransactionDTO;
 import com.financetracker.entity.Transaction;
+import com.financetracker.entity.User;
 import com.financetracker.repository.TransactionRepository;
+import com.financetracker.repository.UserRepository;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Import Service
- * Handles CSV file parsing and bulk transaction import
- */
 @Service
 public class ImportService {
 
+    private static final Logger log = LoggerFactory.getLogger(ImportService.class);
+
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private static final DateTimeFormatter[] DATE_FORMATTERS = {
             DateTimeFormatter.ofPattern("yyyy-MM-dd"),
@@ -42,11 +49,6 @@ public class ImportService {
             "Food", "Transport", "Entertainment", "Utilities", "Shopping", "Healthcare", "Other"
     );
 
-    /**
-     * Import transactions from CSV file
-     * * @param file the uploaded CSV file
-     * @return CsvImportResultDTO with import results
-     */
     public CsvImportResultDTO importTransactionsFromCsv(MultipartFile file) {
         List<String> errors = new ArrayList<>();
         List<Long> importedTransactionIds = new ArrayList<>();
@@ -54,151 +56,197 @@ public class ImportService {
         int totalRecords = 0;
 
         try {
-            // Parse CSV file
+            // FIX 1: Robust User Resolution for OAuth2/Google
+            User currentUser = resolveCurrentAuthenticatedUser();
+            if (currentUser == null) {
+                errors.add("Authentication Error: Could not find your user profile. Please re-login.");
+                return new CsvImportResultDTO(0, 0, 0, errors, importedTransactionIds);
+            }
+
             List<CsvTransactionDTO> csvRecords = parseCsvFile(file);
             totalRecords = csvRecords.size();
 
             if (totalRecords == 0) {
-                errors.add("CSV file is empty or has no valid records");
+                errors.add("The CSV file is empty.");
                 return new CsvImportResultDTO(0, 0, 0, errors, importedTransactionIds);
             }
 
-            // Process each record
+            List<Transaction> validTransactions = new ArrayList<>();
+
             for (int i = 0; i < csvRecords.size(); i++) {
                 CsvTransactionDTO csvRecord = csvRecords.get(i);
                 try {
-                    // Validate and convert record
-                    Transaction transaction = convertCsvToTransaction(csvRecord, i + 2); // +2 for header and 1-based indexing
+                    Transaction transaction = convertCsvToTransaction(csvRecord, i + 2);
                     
-                    // Save transaction
-                    Transaction savedTransaction = transactionRepository.save(transaction);
-                    importedTransactionIds.add(savedTransaction.getId());
+                    // Link to authenticated user
+                    transaction.setUser(currentUser);
+                    transaction.setUserEmail(currentUser.getEmail());
+
+                    validTransactions.add(transaction);
                     successfulRecords++;
-                    
                 } catch (IllegalArgumentException ex) {
-                    errors.add("Row " + (i + 2) + ": " + ex.getMessage());
+                    // Log the skip/fail but continue processing other rows
+                    if (!ex.getMessage().contains("header row")) {
+                        errors.add("Row " + (i + 2) + ": " + ex.getMessage());
+                    } else {
+                        totalRecords--; // Adjust count if we skipped a header
+                    }
                 }
             }
 
+            if (!validTransactions.isEmpty()) {
+                List<Transaction> saved = transactionRepository.saveAll(validTransactions);
+                saved.forEach(t -> importedTransactionIds.add(t.getId()));
+            }
+
         } catch (Exception ex) {
-            errors.add("Error reading CSV file: " + ex.getMessage());
-            return new CsvImportResultDTO(totalRecords, successfulRecords, 
-                    totalRecords - successfulRecords, errors, importedTransactionIds);
+            log.error("CSV import failed", ex);
+            errors.add("Critical Error: " + ex.getMessage());
         }
 
-        int failedRecords = totalRecords - successfulRecords;
-        return new CsvImportResultDTO(totalRecords, successfulRecords, failedRecords, errors, importedTransactionIds);
+        return new CsvImportResultDTO(totalRecords, successfulRecords, totalRecords - successfulRecords, errors, importedTransactionIds);
     }
 
-    /**
-     * Parse CSV file using OpenCSV
-     * * @param file the MultipartFile to parse
-     * @return List of CsvTransactionDTO objects
-     * @throws Exception if parsing fails
-     */
     private List<CsvTransactionDTO> parseCsvFile(MultipartFile file) throws Exception {
-        InputStream inputStream = file.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-        // Fixed: Use bufferedReader instead of undefined 'reader'
-        // Fixed: Explicitly typed the CsvToBeanBuilder to prevent generic mismatch errors
-        CsvToBean<CsvTransactionDTO> csvToBean = new CsvToBeanBuilder<CsvTransactionDTO>(bufferedReader)
-                .withType(CsvTransactionDTO.class)
-                .withIgnoreLeadingWhiteSpace(true)
-                .build();
-
-        return csvToBean.parse();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            CsvToBean<CsvTransactionDTO> csvToBean = new CsvToBeanBuilder<CsvTransactionDTO>(reader)
+                    .withType(CsvTransactionDTO.class)
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .build();
+            return csvToBean.parse();
+        }
     }
 
-    /**
-     * Convert CSV record to Transaction entity with validation
-     * * @param csvRecord the CSV record to convert
-     * @param rowNumber the row number (for error messages)
-     * @return Transaction entity
-     * @throws IllegalArgumentException if validation fails
-     */
-    private Transaction convertCsvToTransaction(CsvTransactionDTO csvRecord, int rowNumber) 
-            throws IllegalArgumentException {
-        
-        // Validate description
-        if (csvRecord.getDescription() == null || csvRecord.getDescription().trim().isEmpty()) {
-            throw new IllegalArgumentException("Description is required");
+    private Transaction convertCsvToTransaction(CsvTransactionDTO csvRecord, int rowNumber) {
+        // FIX 2: Skip Header Logic
+        if ("Category".equalsIgnoreCase(csvRecord.getCategory()) && "Amount".equalsIgnoreCase(csvRecord.getAmount())) {
+            throw new IllegalArgumentException("header row");
         }
 
-        // Validate category
-        String category = csvRecord.getCategory();
-        if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category is required");
-        }
-        
-        // Check if category is valid (case-insensitive)
-        boolean validCategory = VALID_CATEGORIES.stream()
-                .anyMatch(c -> c.equalsIgnoreCase(category));
-        if (!validCategory) {
-            throw new IllegalArgumentException(
-                    "Invalid category: " + category + ". Valid categories: " + 
-                    String.join(", ", VALID_CATEGORIES)
-            );
+        // Description Validation
+        if (csvRecord.getDescription() == null || csvRecord.getDescription().isBlank()) {
+            throw new IllegalArgumentException("Description is missing");
         }
 
-        // Validate and parse amount
+        // Category Validation (Case-Insensitive)
+        String categoryInput = csvRecord.getCategory() != null ? csvRecord.getCategory().trim() : "";
+        String normalizedCategory = VALID_CATEGORIES.stream()
+                .filter(c -> c.equalsIgnoreCase(categoryInput))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid category: " + categoryInput));
+
+        // Amount Validation
         Double amount;
         try {
-            if (csvRecord.getAmount() == null || csvRecord.getAmount().trim().isEmpty()) {
-                throw new IllegalArgumentException("Amount is required");
-            }
-            amount = Double.parseDouble(csvRecord.getAmount().trim());
-            if (amount < 0) {
-                throw new IllegalArgumentException("Amount must be positive");
-            }
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Invalid amount format: " + csvRecord.getAmount());
+            amount = Double.parseDouble(csvRecord.getAmount().replace("$", "").trim());
+            if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid amount: " + csvRecord.getAmount());
         }
 
-        // Validate and parse date
+        // Date Validation
         LocalDate date = parseDate(csvRecord.getDate());
-        if (date == null) {
-            throw new IllegalArgumentException(
-                    "Invalid date format: " + csvRecord.getDate() + 
-                    ". Supported formats: yyyy-MM-dd, yyyy/MM/dd, MM-dd-yyyy, MM/dd/yyyy, dd-MM-yyyy, dd/MM/yyyy"
-            );
-        }
+        if (date == null) throw new IllegalArgumentException("Invalid date: " + csvRecord.getDate());
 
-        // Create and return Transaction entity
         Transaction transaction = new Transaction();
         transaction.setDescription(csvRecord.getDescription().trim());
-        transaction.setCategory(category.trim());
+        transaction.setCategory(normalizedCategory);
         transaction.setAmount(amount);
         transaction.setDate(date);
-
         return transaction;
     }
 
-    /**
-     * Parse date string with multiple format support
-     * * @param dateString the date string to parse
-     * @return LocalDate if successfully parsed, null otherwise
-     */
-    private LocalDate parseDate(String dateString) {
-        if (dateString == null || dateString.trim().isEmpty()) {
+    private User resolveCurrentAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            log.warn("[CSV_IMPORT_AUTH] No authenticated user found in security context. auth={}", auth);
             return null;
         }
 
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                return LocalDate.parse(dateString.trim(), formatter);
-            } catch (Exception ex) {
-                // Try next formatter
+        log.info("[CSV_IMPORT_AUTH] Authentication found. Principal: {}, isAuthenticated: {}, Type: {}", 
+                 auth.getName(), auth.isAuthenticated(), auth.getClass().getSimpleName());
+
+        String email = null;
+
+        // FIX: First try to get email from details (JWT claims via JwtAuthenticationFilter)
+        Object details = auth.getDetails();
+        log.debug("[CSV_IMPORT_AUTH] Checking details object. Type: {}, Value: {}", 
+                  details != null ? details.getClass().getSimpleName() : "null", details);
+        
+        if (details instanceof java.util.Map) {
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> detailsMap = (java.util.Map<String, Object>) details;
+            log.debug("[CSV_IMPORT_AUTH] Details is a Map. Keys: {}", detailsMap.keySet());
+            
+            Object emailFromDetails = detailsMap.get("email");
+            if (emailFromDetails != null) {
+                email = emailFromDetails.toString().trim().toLowerCase();
+                log.info("[CSV_IMPORT_AUTH] SUCCESS: Email extracted from JWT claims: {}", email);
+            } else {
+                log.warn("[CSV_IMPORT_AUTH] 'email' key not found in details map. Available keys: {}", detailsMap.keySet());
+            }
+        } else {
+            log.warn("[CSV_IMPORT_AUTH] Details is NOT a Map. Type: {}", details != null ? details.getClass().getName() : "null");
+        }
+
+        // FIX: Fallback - try OAuth2User attributes (for direct OAuth2 access)
+        if (email == null && auth.getPrincipal() instanceof OAuth2User) {
+            log.info("[CSV_IMPORT_AUTH] Trying OAuth2User fallback...");
+            OAuth2User oauth2User = (OAuth2User) auth.getPrincipal();
+            Object emailAttr = oauth2User.getAttribute("email");
+            if (emailAttr != null) {
+                email = emailAttr.toString().trim().toLowerCase();
+                log.info("[CSV_IMPORT_AUTH] SUCCESS: Email extracted from OAuth2User attributes: {}", email);
+            } else {
+                log.warn("[CSV_IMPORT_AUTH] OAuth2User has no 'email' attribute. Attributes: {}", oauth2User.getAttributes().keySet());
             }
         }
 
-        return null;
+        // FIX: Fallback - use principal as email if it looks like an email
+        if (email == null) {
+            String principal = auth.getName();
+            log.info("[CSV_IMPORT_AUTH] Trying principal fallback. Principal: {}", principal);
+            if (principal != null && principal.contains("@")) {
+                email = principal.trim().toLowerCase();
+                log.info("[CSV_IMPORT_AUTH] SUCCESS: Using principal as email: {}", email);
+            } else {
+                log.warn("[CSV_IMPORT_AUTH] Principal does not look like an email: {}", principal);
+            }
+        }
+
+        if (email == null) {
+            log.error("[CSV_IMPORT_AUTH] FAILED: Could not extract email from authentication.");
+            log.error("  - Principal: {}", auth.getName());
+            log.error("  - Details Type: {}", auth.getDetails() != null ? auth.getDetails().getClass().getName() : "null");
+            log.error("  - Details Value: {}", auth.getDetails());
+            log.error("  - Principal Type: {}", auth.getPrincipal().getClass().getName());
+            return null;
+        }
+
+        log.info("[CSV_IMPORT_AUTH] Resolved email: {}", email);
+        
+        // Find user by email in database
+        User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
+        if (user == null) {
+            log.error("[CSV_IMPORT_AUTH] FAILED: No user found in database for email: {}", email);
+            log.error("  - Please ensure user with this email exists in 'users' table");
+        } else {
+            log.info("[CSV_IMPORT_AUTH] SUCCESS: User resolved for import: {} (ID: {})", email, user.getId());
+        }
+        return user;
     }
 
+    private LocalDate parseDate(String dateString) {
+        if (dateString == null) return null;
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                return LocalDate.parse(dateString.trim(), formatter);
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
     /**
-     * Get example CSV format
-     * * @return String with example CSV format
+     * Get example CSV format for the frontend
      */
     public String getExampleCsvFormat() {
         return "Date,Description,Category,Amount\n" +

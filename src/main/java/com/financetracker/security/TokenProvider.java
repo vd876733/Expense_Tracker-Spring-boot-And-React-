@@ -85,6 +85,26 @@ public class TokenProvider {
     }
 
     /**
+     * Generate a JWT token from username and email (for OAuth2)
+     *
+     * @param username the username
+     * @param email the user's email
+     * @return JWT token string
+     */
+    public String generateTokenFromUsernameAndEmail(String username, String email) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+        return Jwts.builder()
+                .setSubject(username)            // Principal: username
+                .claim("email", email != null ? email.trim().toLowerCase() : null)  // Store normalized email in claims
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(signingKey)
+                .compact();
+    }
+
+    /**
      * Get username from JWT token
      *
      * @param token the JWT token
@@ -93,6 +113,18 @@ public class TokenProvider {
     public String getUsernameFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
         return claims.getSubject();
+    }
+
+    /**
+     * Get email from JWT token claims
+     *
+     * @param token the JWT token
+     * @return email from the token claims, or null if not present
+     */
+    public String getEmailFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        Object emailClaim = claims.get("email");
+        return emailClaim != null ? emailClaim.toString() : null;
     }
 
     /**

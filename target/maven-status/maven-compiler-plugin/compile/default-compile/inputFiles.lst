@@ -1,7 +1,8 @@
-D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\CorsConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\DataInitializer.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\PasswordConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\PersistenceConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\SecurityConfig.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\WebConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\AIInsightsController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\AuthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\BudgetController.java
