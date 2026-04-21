@@ -180,6 +180,12 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         transaction.setUserEmail(resolvedEmail);
+        User currentUser = userRepository.findByEmailIgnoreCase(resolvedEmail)
+                .orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        transaction.setUser(currentUser);
         try {
             Transaction savedTransaction = transactionService.addTransaction(transaction);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
@@ -389,5 +395,9 @@ public class TransactionController {
         return userRepository.findByUsername(candidate)
                 .map(user -> user.getEmail())
                 .orElse(null);
+    }
+
+    private String resolveEmail(Authentication authentication) {
+        return resolveEmail(authentication, null);
     }
 }

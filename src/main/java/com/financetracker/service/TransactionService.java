@@ -77,6 +77,7 @@ public class TransactionService {
                 logger.error("Transaction save root cause: {}", rootCause.getMessage(), rootCause);
             }
             System.out.println("Transaction save SQL error: " + (rootCause != null ? rootCause.getMessage() : ex.getMessage()));
+            ex.printStackTrace();
             throw ex;
         }
     }
