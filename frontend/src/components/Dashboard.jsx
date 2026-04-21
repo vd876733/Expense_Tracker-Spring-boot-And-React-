@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
-import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome } from '../services/api';
+import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
 import { History, Sparkles, HandCoins } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -36,8 +35,6 @@ import SmartInsights from './SmartInsights';
 import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
 
 const Dashboard = ({ onLogout, userId }) => {
   const navigate = useNavigate();
@@ -82,7 +79,7 @@ const Dashboard = ({ onLogout, userId }) => {
       return null;
     }
   });
-  const [dateFilter, setDateFilter] = useState('30D');
+  const [dateFilter, setDateFilter] = useState('ALL');
   const [transactions, setTransactions] = useState([]);
   const [topCategory, setTopCategory] = useState(null);
   const [budgets, setBudgets] = useState([]);
@@ -199,6 +196,9 @@ const Dashboard = ({ onLogout, userId }) => {
       start.setFullYear(start.getFullYear() - 1);
       startDate = formatDate(start);
       label = 'Last 1 Year';
+    } else if (dateFilter === 'ALL') {
+      startDate = '2000-01-01';
+      label = 'All Time';
     } else if (dateFilter === 'CUSTOM' && customStartDate && customEndDate) {
       startDate = formatDate(new Date(customStartDate));
       label = 'Custom Range';
@@ -271,38 +271,34 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   const fetchTransactions = useCallback(async (startDate, endDate) => {
-    const token = localStorage.getItem('token');
-    const authOptions = token
-      ? { headers: { Authorization: `Bearer ${token}` } }
-      : {};
-
     const email = getStoredUserEmail();
     if (!email) {
       setTransactions([]);
       return;
     }
 
-    const transactionsData = await getFilteredTransactions({
-      startDate,
-      endDate,
-      email,
-    }, authOptions);
-    setTransactions(transactionsData);
+    try {
+      const transactionsData = await getFilteredTransactions({
+        startDate,
+        endDate,
+        email,
+      });
+      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+      throw err; // Re-throw to be caught by fetchDashboardData
+    }
   }, []);
 
   const fetchMonthlyCategoryTotals = useCallback(async () => {
     setIsMonthlyTotalsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
       const email = getStoredUserEmail();
       if (!email) {
         setMonthlyCategoryTotals([]);
         return;
       }
-      const totals = await getCurrentMonthCategoryTotals(email, authOptions);
+      const totals = await getCurrentMonthCategoryTotals(email);
       setMonthlyCategoryTotals(Array.isArray(totals) ? totals : []);
     } catch (err) {
       console.error('Failed to fetch current month category totals:', err);
@@ -315,16 +311,12 @@ const Dashboard = ({ onLogout, userId }) => {
   const fetchDailySpendingChartData = useCallback(async (startDate, endDate) => {
     setIsDailySpendingLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
       const email = getStoredUserEmail();
       if (!email) {
         setDailySpendingChartData([]);
         return;
       }
-      const totals = await getDailySpendingChartData(startDate, endDate, email, authOptions);
+      const totals = await getDailySpendingChartData(startDate, endDate, email);
       setDailySpendingChartData(Array.isArray(totals) ? totals : []);
     } catch (err) {
       console.error('Failed to fetch daily spending totals:', err);
@@ -346,15 +338,11 @@ const Dashboard = ({ onLogout, userId }) => {
       }
     }
 
-    const authOptions = token
-      ? { headers: { Authorization: `Bearer ${token}` } }
-      : {};
-
     const username = token ? getUsernameFromToken(token) : null;
     const budgetsData = Number.isFinite(numericUserId) && numericUserId > 0
-      ? await getBudgetAnalyses(numericUserId, authOptions)
+      ? await getBudgetAnalyses(numericUserId)
       : username
-        ? await getBudgetAnalysesByUsername(username, authOptions)
+        ? await getBudgetAnalysesByUsername(username)
         : [];
     setBudgets(budgetsData);
     setBudgetAnalyses(budgetsData);
@@ -382,8 +370,26 @@ const Dashboard = ({ onLogout, userId }) => {
         }
       }
     } catch (err) {
-      setError('Failed to fetch dashboard data. Make sure the backend is running.');
-      console.error(err);
+      let errorMessage = 'Failed to fetch dashboard data. Make sure the backend is running.';
+      
+      // Extract detailed error information
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.status) {
+        errorMessage = `HTTP Error ${err.status}: ${err.statusText || 'Unknown'}`;
+      }
+      
+      setError(errorMessage);
+      console.error('Dashboard error:', {
+        fullError: err,
+        message: errorMessage,
+        status: err?.response?.status,
+        data: err?.response?.data,
+      });
     } finally {
       setLoading(false);
     }
@@ -562,12 +568,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-
-      await deleteTransaction(id, authOptions);
+      await deleteTransaction(id);
 
       await fetchTransactions(globalStartDate, globalEndDate);
       toast.success('✓ Transaction deleted');
@@ -582,20 +583,7 @@ const Dashboard = ({ onLogout, userId }) => {
   const fetchHistory = async (id) => {
     try {
       const transaction = transactions.find((t) => t.id === id);
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        toast.error('You must be logged in to view transaction history');
-        return;
-      }
-
-      const response = await axios.get(`${API_BASE_URL}/api/transactions/${id}/history`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const historyData = response.data;
+      const historyData = await getTransactionHistoryById(id);
       console.log('Audit history data:', historyData);
       setAuditData(historyData);
 
@@ -634,7 +622,10 @@ const Dashboard = ({ onLogout, userId }) => {
     // Refresh dashboard data after successful import
     if (importResult.successfulRecords > 0) {
       toast.success(`✓ Successfully imported ${importResult.successfulRecords} transaction${importResult.successfulRecords !== 1 ? 's' : ''}!`);
-      fetchDashboardData(globalStartDate, globalEndDate);
+      // Immediately refresh transactions and charts
+      await fetchTransactions(globalStartDate, globalEndDate);
+      await fetchDashboardData(globalStartDate, globalEndDate);
+      await fetchDailySpendingChartData(globalStartDate, globalEndDate);
     }
   };
 
@@ -657,10 +648,6 @@ const Dashboard = ({ onLogout, userId }) => {
 
       const numericUserId = Number(userId);
 
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-
       const payload = {
         category: budgetForm.category,
         monthlyLimit: parseFloat(budgetForm.monthlyLimit),
@@ -670,7 +657,7 @@ const Dashboard = ({ onLogout, userId }) => {
         payload.userId = numericUserId;
       }
 
-      await createBudget(payload, authOptions);
+      await createBudget(payload);
 
       await fetchBudgets();
 
@@ -692,17 +679,13 @@ const Dashboard = ({ onLogout, userId }) => {
   const handleConfirmResetBudgets = async () => {
     try {
       const token = localStorage.getItem('token');
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-
       const numericUserId = Number(userId);
       if (!Number.isFinite(numericUserId)) {
         toast.error('Unable to determine the logged-in user');
         return;
       }
 
-      await resetBudgetsByUser(numericUserId, authOptions);
+      await resetBudgetsByUser(numericUserId);
       setBudgets([]);
       setBudgetAnalyses([]);
       setBudgetResetSuccess(true);
@@ -722,11 +705,7 @@ const Dashboard = ({ onLogout, userId }) => {
     }
     setIsAiLoading(true);
     try {
-      const authOptions = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {};
-
-      const response = await getAiInsights(email, authOptions);
+      const response = await getAiInsights(email);
       setAiInsights(response?.insights || 'No insights available at the moment.');
     } catch (err) {
       toast.error('Failed to fetch AI insights');
@@ -749,10 +728,7 @@ const Dashboard = ({ onLogout, userId }) => {
       } else {
         try {
           const token = localStorage.getItem('token');
-          const authOptions = token
-            ? { headers: { Authorization: `Bearer ${token}` } }
-            : {};
-          const updatedUser = await updateUserIncome(email, income, authOptions);
+          const updatedUser = await updateUserIncome(email, income);
           if (updatedUser?.totalIncome !== undefined && updatedUser?.totalIncome !== null) {
             setIncome(Number(updatedUser.totalIncome));
             localStorage.setItem('userIncome', String(updatedUser.totalIncome));
@@ -1100,6 +1076,17 @@ const Dashboard = ({ onLogout, userId }) => {
                   }`}
                 >
                   1 Year
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDateFilter('ALL')}
+                  className={`px-4 py-2 text-sm font-semibold border-l border-gray-300 transition ${
+                    dateFilter === 'ALL'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                  }`}
+                >
+                  All Time
                 </button>
               </div>
               <div className="flex flex-wrap items-end gap-2">
