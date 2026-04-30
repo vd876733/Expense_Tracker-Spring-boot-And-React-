@@ -12,4 +12,4 @@ WORKDIR /app
 # Copy the jar from the build stage
 COPY --from=build /workspace/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"] 
