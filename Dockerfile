@@ -4,7 +4,7 @@ WORKDIR /workspace
 COPY pom.xml .
 COPY src ./src
 # Build the jar file
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests 
 
 # Stage 2: Run the application using Java 21 JRE
 FROM eclipse-temurin:21-jre-alpine
