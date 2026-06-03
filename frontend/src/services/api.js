@@ -551,3 +551,108 @@ export const updateUserIncome = async (email, totalIncome, options = {}) => {
     throw error;
   }
 };
+
+/**
+ * Fetch all savings goals for the authenticated user
+ * @returns {Promise<Array>} Array of savings goals
+ */
+export const getSavingsGoals = async (options = {}) => {
+  try {
+    const response = await apiClient.get('/savings-goals', options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching savings goals:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new savings goal
+ * @param {Object} goalData - Goal data (goalName, targetAmount, deadline)
+ * @returns {Promise<Object>} Created savings goal
+ */
+export const createSavingsGoal = async (goalData, options = {}) => {
+  try {
+    const response = await apiClient.post('/savings-goals', goalData, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating savings goal:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing savings goal
+ * @param {number} id - Savings goal ID
+ * @param {Object} goalData - Updated goal data
+ * @returns {Promise<Object>} Updated savings goal
+ */
+export const updateSavingsGoal = async (id, goalData, options = {}) => {
+  try {
+    const response = await apiClient.put(`/savings-goals/${id}`, goalData, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating savings goal:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a savings goal
+ * @param {number} id - Savings goal ID
+ * @returns {Promise<void>}
+ */
+export const deleteSavingsGoal = async (id, options = {}) => {
+  try {
+    const response = await apiClient.delete(`/savings-goals/${id}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting savings goal:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch AI Coach insights based on current month spending
+ * @returns {Promise<Object>} AI insights object with insights text and timestamp
+ */
+export const getAiCoachInsights = async (options = {}) => {
+  try {
+    const response = await apiClient.get('/ai/insights', options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching AI insights:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch spending breakdown by category for a specific month
+ * @returns {Promise<Object>} Spending breakdown with month, year, and category totals
+ */
+export const getSpendingBreakdown = async (options = {}) => {
+  try {
+    const response = await apiClient.get('/ai/spending-breakdown', options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching spending breakdown:', error);
+    throw error;
+  }
+};

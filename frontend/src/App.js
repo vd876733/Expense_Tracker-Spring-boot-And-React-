@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Register from './components/Register';
 import SettlementPage from './components/SettlementPage';
+import InsightsPage from './components/InsightsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
@@ -45,6 +46,14 @@ function App() {
               element={
                 <ProtectedRoute token={token}>
                   <SettlementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/insights"
+              element={
+                <ProtectedRoute token={token}>
+                  <InsightsPage />
                 </ProtectedRoute>
               }
             />

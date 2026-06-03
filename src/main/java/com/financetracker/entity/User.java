@@ -47,6 +47,10 @@ public class User {
     @JsonIgnore
     private List<Transaction> transactions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<SavingsGoal> savingsGoals = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -133,5 +137,13 @@ public class User {
 
     public void setTransactions(List<Transaction> transactions) {
         this.transactions = transactions;
+    }
+
+    public List<SavingsGoal> getSavingsGoals() {
+        return savingsGoals;
+    }
+
+    public void setSavingsGoals(List<SavingsGoal> savingsGoals) {
+        this.savingsGoals = savingsGoals;
     }
 }

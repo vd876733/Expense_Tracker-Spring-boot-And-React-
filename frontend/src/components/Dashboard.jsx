@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
-import { History, Sparkles, HandCoins } from 'lucide-react';
+import { History, Sparkles, HandCoins, TrendingUp } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -902,6 +902,14 @@ const Dashboard = ({ onLogout, userId }) => {
             <p className="text-gray-600 dark:text-gray-300">Manage and track your personal finances</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/insights')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
+              title="View Financial Insights"
+            >
+              <TrendingUp size={18} />
+              <span>Insights</span>
+            </button>
             <ThemeToggle />
             {googleUser ? (
               <div className="flex items-center gap-3 rounded-full bg-white/70 px-3 py-1 shadow-sm">

@@ -1,3 +1,4 @@
+com\financetracker\controller\SavingsGoalController.class
 com\financetracker\repository\RecurringTransactionRepository.class
 com\financetracker\entity\Transaction.class
 com\financetracker\dto\DailySpendingDTO.class
@@ -13,6 +14,7 @@ com\financetracker\dto\CsvImportResultDTO.class
 com\financetracker\task\RecurringTask.class
 com\financetracker\dto\BudgetDTO.class
 com\financetracker\repository\TransactionRepository.class
+com\financetracker\service\AiInsightsService.class
 com\financetracker\controller\TransactionController.class
 com\financetracker\controller\TransactionController$1.class
 com\financetracker\controller\BudgetController.class
@@ -22,7 +24,9 @@ com\financetracker\config\WebConfig.class
 com\financetracker\entity\Budget.class
 com\financetracker\repository\UserRepository.class
 com\financetracker\dto\CategoryTotalDTO.class
+com\financetracker\entity\SavingsGoal.class
 com\financetracker\config\SecurityConfig.class
+com\financetracker\repository\SavingsGoalRepository.class
 com\financetracker\controller\AuthController$SignupRequest.class
 com\financetracker\exception\ResourceNotFoundException.class
 com\financetracker\dto\SignUpRequest.class

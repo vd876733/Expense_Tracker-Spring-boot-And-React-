@@ -9,6 +9,7 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ExportController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\GoogleAuthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ImportController.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\SavingsGoalController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\TransactionController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\UserController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\dto\AuditDTO.java
@@ -27,6 +28,7 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\dto\SignUpRequest.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\Budget.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\RecurringTransaction.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\SavingsGoal.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\Transaction.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\User.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\exception\GlobalExceptionHandler.java
@@ -35,11 +37,13 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\FinanceTrackerApplication.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\BudgetRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\RecurringTransactionRepository.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\SavingsGoalRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\TransactionRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\UserRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\security\CustomUserDetailsService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\security\JwtAuthenticationFilter.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\security\TokenProvider.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\AiInsightsService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\BudgetService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\GeminiService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\GoogleAuthService.java
