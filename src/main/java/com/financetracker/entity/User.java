@@ -51,6 +51,14 @@ public class User {
     @JsonIgnore
     private List<SavingsGoal> savingsGoals = new ArrayList<>();
 
+    /**
+     * One-to-Many relationship with GroupMembership
+     * Includes membership status (PENDING/ACCEPTED)
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<GroupMembership> groupMemberships = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -145,5 +153,13 @@ public class User {
 
     public void setSavingsGoals(List<SavingsGoal> savingsGoals) {
         this.savingsGoals = savingsGoals;
+    }
+
+    public List<GroupMembership> getGroupMemberships() {
+        return groupMemberships;
+    }
+
+    public void setGroupMemberships(List<GroupMembership> groupMemberships) {
+        this.groupMemberships = groupMemberships;
     }
 }

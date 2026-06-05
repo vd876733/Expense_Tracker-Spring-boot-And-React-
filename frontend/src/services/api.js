@@ -25,6 +25,11 @@ const API_ROUTES = {
   settlements: '/settlements',
   settleDebt: (debtId) => `/settlements/${debtId}/settle`,
   updateIncome: '/users/income',
+  groupReminder: '/groups/remind',
+  groupAcceptInvite: (groupId) => `/groups/${groupId}/accept`,
+  groupReminderByGroup: (groupId) => `/groups/${groupId}/remind`,
+  groupsByStatus: (status) => `/groups?status=${encodeURIComponent(status)}`,
+  groupInvites: '/groups/invites',
 };
 
 /**
@@ -207,6 +212,102 @@ export const deleteTransaction = async (id, options = {}) => {
     }
   } catch (error) {
     console.error(`Error deleting transaction ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Send a group expense reminder email
+ * @param {Object} data - Reminder payload
+ * @param {string} data.debtorEmail - Debtor's email
+ * @param {string} data.creditorName - Creditor's display name
+ * @param {number} data.amountOwed - Amount owed
+ * @returns {Promise<Object>} Reminder response
+ */
+export const sendGroupReminder = async (data, options = {}) => {
+  try {
+    const response = await apiClient.post(API_ROUTES.groupReminder, data, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending group reminder:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send a group expense reminder email for a specific group
+ * @param {string|number} groupId - Group ID
+ * @param {Object} data - Reminder payload
+ * @param {string} data.debtorEmail - Debtor's email
+ * @param {string} data.creditorName - Creditor's display name
+ * @param {number} data.amountOwed - Amount owed
+ * @returns {Promise<Object>} Reminder response
+ */
+export const sendGroupReminderForGroup = async (groupId, data, options = {}) => {
+  try {
+    const response = await apiClient.post(API_ROUTES.groupReminderByGroup(groupId), data, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending group reminder:', error);
+    throw error;
+  }
+};
+
+/**
+ * Accept a group invitation
+ * @param {string|number} groupId - Group ID
+ * @returns {Promise<Object>} Acceptance response
+ */
+export const acceptGroupInvite = async (groupId, options = {}) => {
+  try {
+    const response = await apiClient.post(API_ROUTES.groupAcceptInvite(groupId), {}, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error accepting group invite:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch groups for the authenticated user by status
+ * @param {string} status - Membership status (ACCEPTED or PENDING)
+ * @returns {Promise<Array>} Group list
+ */
+export const getGroupsByStatus = async (status, options = {}) => {
+  try {
+    const response = await apiClient.get(API_ROUTES.groupsByStatus(status), options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching groups by status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch pending group invites for the authenticated user
+ * @returns {Promise<Array>} Invite list
+ */
+export const getPendingGroupInvites = async (options = {}) => {
+  try {
+    const response = await apiClient.get(API_ROUTES.groupInvites, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching pending group invites:', error);
     throw error;
   }
 };

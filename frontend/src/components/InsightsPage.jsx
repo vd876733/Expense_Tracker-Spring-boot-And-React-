@@ -1,24 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, TrendingUp, Target } from 'lucide-react';
-import { getSavingsGoals, getAiCoachInsights, getTransactions } from '../services/api';
+import {
+  getSavingsGoals,
+  getAiCoachInsights,
+  getTransactions,
+  sendGroupReminderForGroup,
+  acceptGroupInvite,
+  getGroupsByStatus,
+  getPendingGroupInvites,
+} from '../services/api';
 import { toast } from 'react-toastify';
 import CategorySpendingDonut from './CategorySpendingDonut';
 import '../styles/InsightsPage.css';
 
 const InsightsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [savingsGoals, setSavingsGoals] = useState([]);
   const [aiInsights, setAiInsights] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [emailInputs, setEmailInputs] = useState(['', '', '']);
+  const [groups, setGroups] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
+  const [activeGroupId, setActiveGroupId] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return localStorage.getItem('selectedGroupId') || '';
+  });
+  const [groupExpenses, setGroupExpenses] = useState({});
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    description: '',
+    amount: '',
+    date: '',
+  });
 
   // Fetch data on component mount
   useEffect(() => {
     fetchData();
+    fetchGroupData();
   }, []);
+  const fetchGroupData = async () => {
+    try {
+      const [acceptedGroups, invites] = await Promise.all([
+        getGroupsByStatus('ACCEPTED'),
+        getPendingGroupInvites(),
+      ]);
+
+      setGroups(Array.isArray(acceptedGroups) ? acceptedGroups : []);
+      setPendingInvites(Array.isArray(invites) ? invites : []);
+
+      if (acceptedGroups?.length) {
+        const storedId = typeof window === 'undefined'
+          ? ''
+          : localStorage.getItem('selectedGroupId');
+        const match = acceptedGroups.find((group) => String(group.id) === String(storedId));
+        if (!match) {
+          localStorage.removeItem('selectedGroupId');
+          setActiveGroupId('');
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching group data:', err);
+      toast.error('Failed to load groups and invites.');
+    }
+  };
+  const handleGroupSelect = (value) => {
+    setActiveGroupId(value);
+    if (typeof window !== 'undefined') {
+      if (value) {
+        localStorage.setItem('selectedGroupId', value);
+      } else {
+        localStorage.removeItem('selectedGroupId');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const groupId = searchParams.get('groupId');
+    const action = searchParams.get('action');
+
+    if (groupId && action === 'accept') {
+      acceptGroupInvite(groupId)
+        .then(() => {
+          toast.success('You have joined the group successfully!');
+          setSearchParams({});
+        })
+        .catch(() => {
+          toast.error('Failed to accept the group invite.');
+        });
+    }
+  }, [searchParams, setSearchParams]);
 
   /**
    * Fetch savings goals and AI insights simultaneously
@@ -85,6 +161,193 @@ const InsightsPage = () => {
 
   const handleBackToDashboard = () => {
     navigate('/dashboard');
+  };
+
+  const formatINR = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
+  };
+
+  const calculateSettlements = (members, expenses) => {
+    if (!members?.length || !expenses?.length) return [];
+
+    const totals = new Map();
+    members.forEach((member) => totals.set(member.id, 0));
+
+    let totalSpent = 0;
+    expenses.forEach((expense) => {
+      const payerId = expense?.payer?.id;
+      const amount = Number(expense?.totalAmount) || 0;
+      totalSpent += amount;
+      if (payerId && totals.has(payerId)) {
+        totals.set(payerId, totals.get(payerId) + amount);
+      }
+    });
+
+    const share = totalSpent / members.length;
+    const balances = members.map((member) => ({
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      net: (totals.get(member.id) || 0) - share,
+    }));
+
+    const creditors = balances
+      .filter((b) => b.net > 0.01)
+      .map((b) => ({ ...b }))
+      .sort((a, b) => b.net - a.net);
+    const debtors = balances
+      .filter((b) => b.net < -0.01)
+      .map((b) => ({ ...b, net: Math.abs(b.net) }))
+      .sort((a, b) => b.net - a.net);
+
+    const settlements = [];
+    let i = 0;
+    let j = 0;
+
+    while (i < debtors.length && j < creditors.length) {
+      const debtor = debtors[i];
+      const creditor = creditors[j];
+      const amount = Math.min(debtor.net, creditor.net);
+
+      if (amount > 0.01) {
+        settlements.push({
+          debtorName: debtor.name,
+          debtorEmail: debtor.email,
+          creditorName: creditor.name,
+          amount,
+        });
+      }
+
+      debtor.net -= amount;
+      creditor.net -= amount;
+
+      if (debtor.net <= 0.01) i += 1;
+      if (creditor.net <= 0.01) j += 1;
+    }
+
+    return settlements;
+  };
+
+  const handleEmailChange = (index, value) => {
+    setEmailInputs((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const addEmailInput = () => {
+    setEmailInputs((prev) => [...prev, '']);
+  };
+
+  const createGroupLocal = () => {
+    const cleaned = emailInputs
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+    const uniqueEmails = Array.from(new Set(cleaned));
+
+    if (!groupName.trim()) {
+      toast.error('Group name is required.');
+      return;
+    }
+    if (uniqueEmails.length < 3) {
+      toast.error('Please add at least 3 unique emails.');
+      return;
+    }
+
+    const members = uniqueEmails.map((email, index) => ({
+      id: `${email}-${index}`,
+      name: email.split('@')[0] || email,
+      email,
+    }));
+
+    const newGroup = {
+      id: `group-${Date.now()}`,
+      name: groupName.trim(),
+      members,
+    };
+
+    setGroups((prev) => [newGroup, ...prev]);
+    setActiveGroupId(newGroup.id);
+    setGroupName('');
+    setEmailInputs(['', '', '']);
+    setGroupExpenses((prev) => ({ ...prev, [newGroup.id]: [] }));
+    toast.success('Group created locally. Wire this to /api/groups when ready.');
+  };
+
+  const activeGroup = groups.find((group) => group.id === activeGroupId);
+  const activeExpenses = activeGroup ? groupExpenses[activeGroup.id] || [] : [];
+  const settlementLines = activeGroup
+    ? calculateSettlements(activeGroup.members, activeExpenses)
+    : [];
+
+  const handleSendReminder = async (settlement) => {
+    try {
+      if (!activeGroup?.id) {
+        toast.error('Select a group before sending reminders.');
+        return;
+      }
+      await sendGroupReminderForGroup(activeGroup.id, {
+        debtorEmail: settlement.debtorEmail,
+        creditorName: settlement.creditorName,
+        amountOwed: settlement.amount,
+      });
+      toast.success(`Reminder sent to ${settlement.debtorName}`);
+    } catch (err) {
+      console.error('Error sending reminder:', err);
+      toast.error('Failed to send reminder.');
+    }
+  };
+
+  const openExpenseModal = () => {
+    setExpenseForm({ description: '', amount: '', date: '' });
+    setShowExpenseModal(true);
+  };
+
+  const closeExpenseModal = () => {
+    setShowExpenseModal(false);
+  };
+
+  const handleExpenseChange = (field, value) => {
+    setExpenseForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveExpenseLocal = () => {
+    if (!activeGroup) {
+      toast.error('Select a group first.');
+      return;
+    }
+    if (!expenseForm.description.trim()) {
+      toast.error('Description is required.');
+      return;
+    }
+    const amountNumber = Number(expenseForm.amount);
+    if (!amountNumber || amountNumber <= 0) {
+      toast.error('Amount must be greater than 0.');
+      return;
+    }
+
+    const newExpense = {
+      id: `expense-${Date.now()}`,
+      description: expenseForm.description.trim(),
+      totalAmount: amountNumber,
+      date: expenseForm.date || new Date().toISOString().split('T')[0],
+      payer: {
+        id: 'current-user',
+        name: 'You',
+      },
+    };
+
+    setGroupExpenses((prev) => ({
+      ...prev,
+      [activeGroup.id]: [newExpense, ...(prev[activeGroup.id] || [])],
+    }));
+    closeExpenseModal();
+    toast.success('Expense added locally.');
   };
 
   return (
@@ -234,6 +497,207 @@ const InsightsPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Group Expense Splitter */}
+          <section className="group-splitter">
+            <div className="group-splitter-header">
+              <div>
+                <h2>Group Expense Splitter</h2>
+                <p>Plan shared spends, track who paid, and settle up in seconds.</p>
+              </div>
+            </div>
+
+            <div className="group-splitter-grid">
+              <div className="splitter-card">
+                <h3>Create Group</h3>
+                <label className="splitter-label" htmlFor="groupName">
+                  Group name
+                </label>
+                <input
+                  id="groupName"
+                  type="text"
+                  className="splitter-input"
+                  placeholder="Weekend trip"
+                  value={groupName}
+                  onChange={(event) => setGroupName(event.target.value)}
+                />
+
+                <div className="splitter-emails">
+                  <div className="splitter-label-row">
+                    <span className="splitter-label">Member emails</span>
+                    <button type="button" className="splitter-link" onClick={addEmailInput}>
+                      + Add email
+                    </button>
+                  </div>
+                  {emailInputs.map((email, index) => (
+                    <input
+                      key={`email-${index}`}
+                      type="email"
+                      className="splitter-input"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(event) => handleEmailChange(index, event.target.value)}
+                    />
+                  ))}
+                </div>
+
+                <button type="button" className="splitter-primary" onClick={createGroupLocal}>
+                  Create Group
+                </button>
+              </div>
+
+              <div className="splitter-card">
+                <h3>Active Group</h3>
+                <label className="splitter-label" htmlFor="activeGroup">
+                  Select group
+                </label>
+                <select
+                  id="activeGroup"
+                  className="splitter-select"
+                  value={activeGroupId}
+                  onChange={(event) => handleGroupSelect(event.target.value)}
+                >
+                  <option value="">Choose a group</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+
+                {activeGroup ? (
+                  <div className="group-details">
+                    <div className="group-actions">
+                      <button type="button" className="splitter-secondary" onClick={openExpenseModal}>
+                        Add Expense
+                      </button>
+                    </div>
+                    <div className="group-members">
+                      <h4>Members</h4>
+                      <div className="member-chips">
+                        {activeGroup.members.map((member) => (
+                          <span key={member.id} className="member-chip">
+                            {member.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="group-expenses">
+                      <h4>Expenses</h4>
+                      {activeExpenses.length === 0 ? (
+                        <div className="empty-expenses">
+                          No expenses logged yet.
+                        </div>
+                      ) : (
+                        <ul className="expense-list">
+                          {activeExpenses.map((expense) => (
+                            <li key={expense.id} className="expense-item">
+                              <div>
+                                <span className="expense-title">{expense.description}</span>
+                                <span className="expense-meta">Paid by {expense.payer.name}</span>
+                              </div>
+                              <span className="expense-amount">
+                                {formatINR(expense.totalAmount)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="group-settlements">
+                      <h4>Settle Up</h4>
+                      {settlementLines.length === 0 ? (
+                        <div className="empty-expenses">
+                          Add expenses to see who owes whom.
+                        </div>
+                      ) : (
+                        <ul className="settlement-list">
+                          {settlementLines.map((line, index) => (
+                            <li key={`${line.debtorName}-${line.creditorName}-${index}`} className="settlement-item">
+                              <div className="settlement-text">
+                                {line.debtorName} owes {line.creditorName} {formatINR(line.amount)}
+                              </div>
+                              <button
+                                type="button"
+                                className="settlement-button"
+                                onClick={() => handleSendReminder(line)}
+                                disabled={!line.debtorEmail}
+                              >
+                                Send Email Reminder
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="empty-expenses">Create or select a group to get started.</div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {showExpenseModal && (
+            <div className="splitter-modal-overlay" role="dialog" aria-modal="true">
+              <div className="splitter-modal">
+                <div className="splitter-modal-header">
+                  <h3>Add Group Expense</h3>
+                  <button type="button" className="splitter-link" onClick={closeExpenseModal}>
+                    Close
+                  </button>
+                </div>
+                <div className="splitter-modal-body">
+                  <label className="splitter-label" htmlFor="expenseDescription">
+                    Description
+                  </label>
+                  <input
+                    id="expenseDescription"
+                    type="text"
+                    className="splitter-input"
+                    value={expenseForm.description}
+                    onChange={(event) => handleExpenseChange('description', event.target.value)}
+                    placeholder="Dinner, cab, groceries"
+                  />
+
+                  <label className="splitter-label" htmlFor="expenseAmount">
+                    Amount
+                  </label>
+                  <input
+                    id="expenseAmount"
+                    type="number"
+                    className="splitter-input"
+                    value={expenseForm.amount}
+                    onChange={(event) => handleExpenseChange('amount', event.target.value)}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                  />
+
+                  <label className="splitter-label" htmlFor="expenseDate">
+                    Date
+                  </label>
+                  <input
+                    id="expenseDate"
+                    type="date"
+                    className="splitter-input"
+                    value={expenseForm.date}
+                    onChange={(event) => handleExpenseChange('date', event.target.value)}
+                  />
+                </div>
+                <div className="splitter-modal-footer">
+                  <button type="button" className="splitter-secondary" onClick={closeExpenseModal}>
+                    Cancel
+                  </button>
+                  <button type="button" className="splitter-primary" onClick={saveExpenseLocal}>
+                    Save Expense
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Additional Info Section */}
           <div className="insights-footer">
