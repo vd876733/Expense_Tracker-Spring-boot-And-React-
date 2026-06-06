@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, TrendingUp, Target } from 'lucide-react';
 import {
-  getSavingsGoals,
+  fetchSavingsGoals,
+  saveSavingsGoal,
   getAiCoachInsights,
   getTransactions,
   sendGroupReminderForGroup,
@@ -38,6 +39,14 @@ const InsightsPage = () => {
     amount: '',
     date: '',
   });
+  const [showAddGoalModal, setShowAddGoalModal] = useState(false);
+  const [newGoalForm, setNewGoalForm] = useState({
+    goalName: '',
+    targetAmount: '',
+    currentAmount: '0.00',
+    targetDate: new Date().toISOString().split('T')[0],
+  });
+  const [goalError, setGoalError] = useState('');
 
   // Fetch data on component mount
   useEffect(() => {
@@ -99,14 +108,29 @@ const InsightsPage = () => {
   /**
    * Fetch savings goals and AI insights simultaneously
    */
+  const getAuthToken = () => {
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('jwt') ||
+      localStorage.getItem('jwtToken') ||
+      ''
+    );
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token is missing. Please login again.');
+      }
+
       // Fetch both endpoints in parallel
       const [goalsResponse, insightsResponse, transactionsResponse] = await Promise.all([
-        getSavingsGoals(),
+        fetchSavingsGoals(token),
         getAiCoachInsights(),
         getTransactions(),
       ]);
@@ -161,6 +185,82 @@ const InsightsPage = () => {
 
   const handleBackToDashboard = () => {
     navigate('/dashboard');
+  };
+
+  const openAddGoalModal = () => {
+    setNewGoalForm({
+      goalName: '',
+      targetAmount: '',
+      currentAmount: '0.00',
+      targetDate: new Date().toISOString().split('T')[0],
+    });
+    setGoalError('');
+    setShowAddGoalModal(true);
+  };
+
+  const closeAddGoalModal = () => {
+    setShowAddGoalModal(false);
+    setGoalError('');
+  };
+
+  const handleNewGoalChange = (field, value) => {
+    setNewGoalForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveGoal = async (event) => {
+    event.preventDefault();
+    setGoalError('');
+
+    const token = getAuthToken();
+    if (!token) {
+      setGoalError('Authentication token is missing.');
+      return;
+    }
+
+    const targetAmount = Number(newGoalForm.targetAmount);
+    const currentAmount = Number(newGoalForm.currentAmount || 0);
+
+    if (!newGoalForm.goalName.trim()) {
+      setGoalError('Goal name is required.');
+      return;
+    }
+
+    if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+      setGoalError('Target amount must be a positive number.');
+      return;
+    }
+
+    if (!Number.isFinite(currentAmount) || currentAmount < 0) {
+      setGoalError('Current amount must be zero or greater.');
+      return;
+    }
+
+    if (!newGoalForm.targetDate) {
+      setGoalError('Target date is required.');
+      return;
+    }
+
+    try {
+      const savedGoal = await saveSavingsGoal(
+        {
+          goalName: newGoalForm.goalName.trim(),
+          targetAmount: targetAmount,
+          currentAmount: currentAmount,
+          targetDate: newGoalForm.targetDate,
+        },
+        token
+      );
+
+      setSavingsGoals((prev) => [savedGoal, ...prev]);
+      closeAddGoalModal();
+      toast.success('Savings goal added successfully!');
+    } catch (err) {
+      console.error('Error saving goal:', err);
+      setGoalError(err.message || 'Unable to save goal.');
+    }
   };
 
   const formatINR = (amount) => {
@@ -430,6 +530,13 @@ const InsightsPage = () => {
             <div className="insight-card savings-goals">
               <div className="card-header">
                 <h2>🎯 Savings Goals</h2>
+                <button
+                  type="button"
+                  className="refresh-icon-button"
+                  onClick={openAddGoalModal}
+                >
+                  + Add Goal
+                </button>
               </div>
               <div className="card-body">
                 {savingsGoals.length > 0 ? (
@@ -497,6 +604,89 @@ const InsightsPage = () => {
               </div>
             </div>
           </div>
+
+          {showAddGoalModal && (
+            <div className="splitter-modal-overlay" role="dialog" aria-modal="true">
+              <div className="splitter-modal">
+                <div className="splitter-modal-header">
+                  <h3>Add Savings Goal</h3>
+                  <button type="button" className="splitter-link" onClick={closeAddGoalModal}>
+                    Close
+                  </button>
+                </div>
+                <form className="splitter-modal-body" onSubmit={handleSaveGoal}>
+                  <label className="splitter-label" htmlFor="goalName">
+                    Goal Name
+                  </label>
+                  <input
+                    id="goalName"
+                    type="text"
+                    className="splitter-input"
+                    value={newGoalForm.goalName}
+                    onChange={(event) => handleNewGoalChange('goalName', event.target.value)}
+                    placeholder="Emergency fund"
+                    required
+                  />
+
+                  <label className="splitter-label" htmlFor="targetAmount">
+                    Target Amount
+                  </label>
+                  <input
+                    id="targetAmount"
+                    type="number"
+                    className="splitter-input"
+                    value={newGoalForm.targetAmount}
+                    onChange={(event) => handleNewGoalChange('targetAmount', event.target.value)}
+                    placeholder="5000"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+
+                  <label className="splitter-label" htmlFor="currentAmount">
+                    Current Amount
+                  </label>
+                  <input
+                    id="currentAmount"
+                    type="number"
+                    className="splitter-input"
+                    value={newGoalForm.currentAmount}
+                    onChange={(event) => handleNewGoalChange('currentAmount', event.target.value)}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+
+                  <label className="splitter-label" htmlFor="targetDate">
+                    Target Date
+                  </label>
+                  <input
+                    id="targetDate"
+                    type="date"
+                    className="splitter-input"
+                    value={newGoalForm.targetDate}
+                    onChange={(event) => handleNewGoalChange('targetDate', event.target.value)}
+                    required
+                  />
+
+                  {goalError && (
+                    <p className="placeholder-text" style={{ color: '#dc2626' }}>
+                      {goalError}
+                    </p>
+                  )}
+
+                  <div className="splitter-modal-footer">
+                    <button type="button" className="splitter-secondary" onClick={closeAddGoalModal}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="splitter-primary">
+                      Save Goal
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* Group Expense Splitter */}
           <section className="group-splitter">

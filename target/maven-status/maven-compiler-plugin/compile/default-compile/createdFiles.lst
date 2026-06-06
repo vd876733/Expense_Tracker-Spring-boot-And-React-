@@ -5,8 +5,12 @@ com\financetracker\dto\DailySpendingDTO.class
 com\financetracker\exception\InsufficientBalanceException.class
 com\financetracker\controller\UserController.class
 com\financetracker\dto\AuditDTO.class
+com\financetracker\service\EmailReminderService.class
+com\financetracker\entity\GroupExpense.class
+com\financetracker\service\GroupInviteEmailService.class
 com\financetracker\FinanceTrackerApplication.class
 com\financetracker\dto\LoginRequest.class
+com\financetracker\entity\ExpenseGroup.class
 com\financetracker\service\GeminiService.class
 com\financetracker\controller\ExportController.class
 com\financetracker\security\JwtAuthenticationFilter.class
@@ -20,6 +24,7 @@ com\financetracker\controller\TransactionController$1.class
 com\financetracker\controller\BudgetController.class
 com\financetracker\dto\MonthlyIncomeExpenseDTO.class
 com\financetracker\controller\ImportController.class
+com\financetracker\repository\ExpenseGroupRepository.class
 com\financetracker\config\WebConfig.class
 com\financetracker\entity\Budget.class
 com\financetracker\repository\UserRepository.class
@@ -30,8 +35,11 @@ com\financetracker\repository\SavingsGoalRepository.class
 com\financetracker\controller\AuthController$SignupRequest.class
 com\financetracker\exception\ResourceNotFoundException.class
 com\financetracker\dto\SignUpRequest.class
+com\financetracker\entity\MembershipStatus.class
 com\financetracker\controller\AuthController.class
 com\financetracker\controller\AIInsightsController.class
+com\financetracker\dto\GroupInviteRequest.class
+com\financetracker\repository\GroupExpenseRepository.class
 com\financetracker\service\BudgetService.class
 com\financetracker\dto\GoogleAuthResponse.class
 com\financetracker\controller\ImportController$1.class
@@ -41,10 +49,14 @@ com\financetracker\service\TransactionService.class
 com\financetracker\dto\GoogleAuthResponse$UserProfile.class
 com\financetracker\config\PasswordConfig.class
 com\financetracker\security\CustomUserDetailsService.class
+com\financetracker\repository\GroupMembershipRepository.class
 com\financetracker\config\PersistenceConfig.class
 com\financetracker\dto\AuditLogDTO.class
+com\financetracker\dto\GroupReminderRequest.class
+com\financetracker\entity\GroupMembership.class
 com\financetracker\config\DataInitializer.class
 com\financetracker\entity\RecurringTransaction.class
+com\financetracker\controller\GroupController.class
 com\financetracker\dto\JwtAuthenticationResponse.class
 com\financetracker\security\TokenProvider.class
 com\financetracker\repository\BudgetRepository.class

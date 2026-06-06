@@ -688,6 +688,54 @@ export const createSavingsGoal = async (goalData, options = {}) => {
   }
 };
 
+const SAVINGS_GOALS_API_URL = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081'}/api/savings`;
+
+export const fetchSavingsGoals = async (token) => {
+  try {
+    const response = await fetch(SAVINGS_GOALS_API_URL, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching savings goals:', error);
+    throw error;
+  }
+};
+
+export const saveSavingsGoal = async (goalData, token) => {
+  try {
+    const response = await fetch(SAVINGS_GOALS_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(goalData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving savings goal:', error);
+    throw error;
+  }
+};
+
 /**
  * Update an existing savings goal
  * @param {number} id - Savings goal ID
