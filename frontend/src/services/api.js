@@ -25,11 +25,8 @@ const API_ROUTES = {
   settlements: '/settlements',
   settleDebt: (debtId) => `/settlements/${debtId}/settle`,
   updateIncome: '/users/income',
-  groupReminder: '/groups/remind',
-  groupAcceptInvite: (groupId) => `/groups/${groupId}/accept`,
-  groupReminderByGroup: (groupId) => `/groups/${groupId}/remind`,
-  groupsByStatus: (status) => `/groups?status=${encodeURIComponent(status)}`,
-  groupInvites: '/groups/invites',
+  groupSettlements: (groupId) => `/groups/${groupId}/settlements`,
+  groupRemind: '/groups/remind',
 };
 
 /**
@@ -118,6 +115,84 @@ export const settleDebt = async (debtId, options = {}) => {
     return await response.json();
   } catch (error) {
     console.error('Error settling debt:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch group settlements (simplified debts)
+ * @param {number} groupId - Group identifier
+ * @returns {Promise<Array>} List of debts
+ */
+export const getGroupSettlements = async (groupId, options = {}) => {
+  try {
+    const response = await apiClient.get(API_ROUTES.groupSettlements(groupId), options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching group settlements:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch active groups for the authenticated user
+ * @returns {Promise<Array>} List of groups
+ */
+export const getGroups = async (options = {}) => {
+  try {
+    const response = await apiClient.get('/groups?status=ACCEPTED', options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new expense group
+ * @param {Object} groupData - { groupName, memberEmails }
+ * @returns {Promise<Object>} Created group
+ */
+export const createGroup = async (groupData, options = {}) => {
+  try {
+    const response = await apiClient.post('/groups', groupData, options);
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) errorMessage = errorData.message;
+      } catch (e) {
+        // Ignore JSON parse error if response is not JSON
+      }
+      throw new Error(errorMessage);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send a reminder for a group debt
+ * @param {Object} data - { debtorEmail, creditorName, amountOwed }
+ * @returns {Promise<Object>}
+ */
+export const sendGroupReminder = async (data, options = {}) => {
+  try {
+    const response = await apiClient.post(API_ROUTES.groupRemind, data, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending group reminder:', error);
     throw error;
   }
 };
@@ -212,102 +287,6 @@ export const deleteTransaction = async (id, options = {}) => {
     }
   } catch (error) {
     console.error(`Error deleting transaction ${id}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Send a group expense reminder email
- * @param {Object} data - Reminder payload
- * @param {string} data.debtorEmail - Debtor's email
- * @param {string} data.creditorName - Creditor's display name
- * @param {number} data.amountOwed - Amount owed
- * @returns {Promise<Object>} Reminder response
- */
-export const sendGroupReminder = async (data, options = {}) => {
-  try {
-    const response = await apiClient.post(API_ROUTES.groupReminder, data, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error sending group reminder:', error);
-    throw error;
-  }
-};
-
-/**
- * Send a group expense reminder email for a specific group
- * @param {string|number} groupId - Group ID
- * @param {Object} data - Reminder payload
- * @param {string} data.debtorEmail - Debtor's email
- * @param {string} data.creditorName - Creditor's display name
- * @param {number} data.amountOwed - Amount owed
- * @returns {Promise<Object>} Reminder response
- */
-export const sendGroupReminderForGroup = async (groupId, data, options = {}) => {
-  try {
-    const response = await apiClient.post(API_ROUTES.groupReminderByGroup(groupId), data, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error sending group reminder:', error);
-    throw error;
-  }
-};
-
-/**
- * Accept a group invitation
- * @param {string|number} groupId - Group ID
- * @returns {Promise<Object>} Acceptance response
- */
-export const acceptGroupInvite = async (groupId, options = {}) => {
-  try {
-    const response = await apiClient.post(API_ROUTES.groupAcceptInvite(groupId), {}, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error accepting group invite:', error);
-    throw error;
-  }
-};
-
-/**
- * Fetch groups for the authenticated user by status
- * @param {string} status - Membership status (ACCEPTED or PENDING)
- * @returns {Promise<Array>} Group list
- */
-export const getGroupsByStatus = async (status, options = {}) => {
-  try {
-    const response = await apiClient.get(API_ROUTES.groupsByStatus(status), options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching groups by status:', error);
-    throw error;
-  }
-};
-
-/**
- * Fetch pending group invites for the authenticated user
- * @returns {Promise<Array>} Invite list
- */
-export const getPendingGroupInvites = async (options = {}) => {
-  try {
-    const response = await apiClient.get(API_ROUTES.groupInvites, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching pending group invites:', error);
     throw error;
   }
 };
@@ -623,7 +602,14 @@ export const getAiInsights = async (email, options = {}) => {
     const route = params.toString()
       ? `${API_ROUTES.aiInsights}?${params.toString()}`
       : API_ROUTES.aiInsights;
-    const response = await apiClient.get(route, options);
+
+    const customApiKey = localStorage.getItem('gemini_api_key');
+    const headers = { ...options.headers };
+    if (customApiKey) {
+      headers['X-Gemini-API-Key'] = customApiKey;
+    }
+
+    const response = await apiClient.get(route, { ...options, headers });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -688,54 +674,6 @@ export const createSavingsGoal = async (goalData, options = {}) => {
   }
 };
 
-const SAVINGS_GOALS_API_URL = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081'}/api/savings`;
-
-export const fetchSavingsGoals = async (token) => {
-  try {
-    const response = await fetch(SAVINGS_GOALS_API_URL, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => response.statusText);
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching savings goals:', error);
-    throw error;
-  }
-};
-
-export const saveSavingsGoal = async (goalData, token) => {
-  try {
-    const response = await fetch(SAVINGS_GOALS_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(goalData),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => response.statusText);
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error saving savings goal:', error);
-    throw error;
-  }
-};
-
 /**
  * Update an existing savings goal
  * @param {number} id - Savings goal ID
@@ -778,7 +716,12 @@ export const deleteSavingsGoal = async (id, options = {}) => {
  */
 export const getAiCoachInsights = async (options = {}) => {
   try {
-    const response = await apiClient.get('/ai/insights', options);
+    const customApiKey = localStorage.getItem('gemini_api_key');
+    const headers = { ...options.headers };
+    if (customApiKey) {
+      headers['X-Gemini-API-Key'] = customApiKey;
+    }
+    const response = await apiClient.get('/ai/insights', { ...options, headers });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

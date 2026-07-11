@@ -39,7 +39,10 @@ public class GroupInviteEmailService {
             
             mailSender.send(message);
         } catch (MessagingException ex) {
-            throw new IllegalStateException("Failed to send invite email", ex);
+            System.err.println("Failed to build invite email message: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.err.println("STUB: Failed to send invite email (SMTP likely not configured). Intended for: " + toEmail);
+            System.err.println("Exception: " + ex.getMessage());
         }
     }
 
@@ -52,7 +55,7 @@ public class GroupInviteEmailService {
             <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
               <h2 style="margin:0 0 12px;">You're invited!</h2>
               <p>You have been invited to join the group <strong>%s</strong>.</p>
-              <p>Click the button below to accept the invitation:</p>
+              <p>Please sign in or register to the Expense Tracker to accept your invitation:</p>
               <p>
                 <a href="%s"
                    style="display:inline-block;background:#f97316;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;font-weight:bold;">

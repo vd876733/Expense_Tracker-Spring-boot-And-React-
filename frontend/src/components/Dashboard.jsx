@@ -903,6 +903,14 @@ const Dashboard = ({ onLogout, userId }) => {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate('/settlements')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
+              title="Group Settlements"
+            >
+              <HandCoins size={18} />
+              <span>Settlements</span>
+            </button>
+            <button
               onClick={() => navigate('/insights')}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
               title="View Financial Insights"

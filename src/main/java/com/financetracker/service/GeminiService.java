@@ -20,17 +20,18 @@ public class GeminiService {
     @Value("${gemini.api.key:}")
     private String geminiApiKey;
 
-    @Value("${gemini.model:gemini-1.5-flash}")
+    @Value("${gemini.model:gemini-pro}")
     private String geminiModel;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String getFinancialInsights(List<Transaction> data) {
+    public String getFinancialInsights(List<Transaction> data, String customApiKey) {
         if (data == null || data.isEmpty()) {
             return "No transaction data found yet. Add transactions to receive AI-driven insights.";
         }
 
-        if (geminiApiKey == null || geminiApiKey.isBlank()) {
+        String activeKey = (customApiKey != null && !customApiKey.isBlank()) ? customApiKey : geminiApiKey;
+        if (activeKey == null || activeKey.isBlank()) {
             return "Gemini API key is not configured. Set gemini.api.key in application properties or environment.";
         }
 
@@ -47,7 +48,7 @@ public class GeminiService {
         String endpoint = String.format(
                 "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
                 geminiModel,
-                geminiApiKey
+                activeKey
         );
 
         HttpHeaders headers = new HttpHeaders();

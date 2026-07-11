@@ -64,12 +64,7 @@ public class SecurityConfig {
                             response.sendError(403, "Forbidden");
                         })
                 )
-                .headers(headers -> headers
-                        .addHeaderWriter(new StaticHeadersWriter(
-                                "Cross-Origin-Opener-Policy",
-                                "same-origin-allow-popups"
-                        ))
-                )
+                // Removed COOP header that was causing postMessage warnings with Google Login
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -81,13 +76,13 @@ public class SecurityConfig {
                 authConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
                 authConfiguration.setAllowCredentials(true);
                 authConfiguration.setAllowedMethods(Arrays.asList("POST", "OPTIONS"));
-                authConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+                authConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Gemini-API-Key"));
 
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
                 configuration.setAllowCredentials(true);
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Gemini-API-Key"));
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/api/v1/auth/**", authConfiguration);

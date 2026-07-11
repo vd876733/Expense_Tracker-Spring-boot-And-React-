@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,9 @@ public class AIInsightsController {
      * @return AI-generated insights with category breakdown
      */
     @GetMapping("/insights")
-    public ResponseEntity<Map<String, Object>> getAiCoachInsights(Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> getAiCoachInsights(
+            Authentication authentication,
+            @RequestHeader(value = "X-Gemini-API-Key", required = false) String customApiKey) {
         try {
             if (authentication == null || !authentication.isAuthenticated()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -59,7 +62,7 @@ public class AIInsightsController {
             }
 
             // Get AI insights
-            String insights = aiInsightsService.getAiCoachInsights(email);
+            String insights = aiInsightsService.getAiCoachInsights(email, customApiKey);
 
             return ResponseEntity.ok(Map.of(
                     "insights", insights,
@@ -115,7 +118,8 @@ public class AIInsightsController {
     @GetMapping("/insights-legacy")
     public ResponseEntity<Map<String, String>> getInsights(
             Authentication authentication,
-            @RequestParam String email) {
+            @RequestParam String email,
+            @RequestHeader(value = "X-Gemini-API-Key", required = false) String customApiKey) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("insights", "Unauthorized"));
         }
@@ -125,7 +129,7 @@ public class AIInsightsController {
         }
 
         List<Transaction> transactions = transactionRepository.findAllByUser_Email(email);
-        String insights = geminiService.getFinancialInsights(transactions);
+        String insights = geminiService.getFinancialInsights(transactions, customApiKey);
         return ResponseEntity.ok(Map.of("insights", insights));
     }
 

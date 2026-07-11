@@ -13,6 +13,9 @@ import com.financetracker.dto.GroupReminderRequest;
 import com.financetracker.dto.GroupInviteRequest;
 import com.financetracker.service.EmailReminderService;
 import com.financetracker.service.GroupInviteEmailService;
+import com.financetracker.service.DebtCalculationService;
+import com.financetracker.service.DebtCalculationService.Debt;
+import com.financetracker.entity.ExpenseSplit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +58,12 @@ public class GroupController {
 
     @Autowired
     private GroupInviteEmailService groupInviteEmailService;
+
+    @Autowired
+    private com.financetracker.service.SmsService smsService;
+
+    @Autowired
+    private DebtCalculationService debtCalculationService;
 
     /**
      * POST /api/groups
@@ -99,26 +108,28 @@ public class GroupController {
             }
         }
 
-        if (emailSet.size() < 3) {
+        if (emailSet.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "At least 3 unique member emails are required"));
+                    .body(Map.of("message", "At least 1 unique member email/phone is required"));
         }
 
         List<User> members = new ArrayList<>();
-        List<String> missingEmails = new ArrayList<>();
 
-        for (String email : emailSet) {
-            Optional<User> userOptional = userRepository.findByEmailIgnoreCase(email);
-            if (userOptional.isPresent()) {
-                members.add(userOptional.get());
-            } else {
-                missingEmails.add(email);
-            }
-        }
-
-        if (!missingEmails.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Some emails do not exist", "missing", missingEmails));
+        for (String identifier : emailSet) {
+            User user = findUserByIdentifier(identifier).orElseGet(() -> {
+                User newUser = new User();
+                if (identifier.contains("@")) {
+                    newUser.setEmail(identifier);
+                } else {
+                    newUser.setEmail("temp_" + java.util.UUID.randomUUID() + "@placeholder.com");
+                    newUser.setPhoneNumber(identifier);
+                }
+                newUser.setUsername(null);
+                newUser.setPassword(null);
+                newUser.setTotalIncome(0.0);
+                return userRepository.save(newUser);
+            });
+            members.add(user);
         }
 
         ExpenseGroup group = new ExpenseGroup();
@@ -228,20 +239,22 @@ public class GroupController {
         }
 
         List<User> members = new ArrayList<>();
-        List<String> missingEmails = new ArrayList<>();
 
-        for (String email : emailSet) {
-            Optional<User> userOptional = userRepository.findByEmailIgnoreCase(email);
-            if (userOptional.isPresent()) {
-                members.add(userOptional.get());
-            } else {
-                missingEmails.add(email);
-            }
-        }
-
-        if (!missingEmails.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Some emails do not exist", "missing", missingEmails));
+        for (String identifier : emailSet) {
+            User user = findUserByIdentifier(identifier).orElseGet(() -> {
+                User newUser = new User();
+                if (identifier.contains("@")) {
+                    newUser.setEmail(identifier);
+                } else {
+                    newUser.setEmail("temp_" + java.util.UUID.randomUUID() + "@placeholder.com");
+                    newUser.setPhoneNumber(identifier);
+                }
+                newUser.setUsername(null);
+                newUser.setPassword(null);
+                newUser.setTotalIncome(0.0);
+                return userRepository.save(newUser);
+            });
+            members.add(user);
         }
 
         ExpenseGroup group = new ExpenseGroup();
@@ -256,7 +269,12 @@ public class GroupController {
         ExpenseGroup saved = expenseGroupRepository.save(group);
 
         for (User member : members) {
-            groupInviteEmailService.sendInviteEmail(member.getEmail(), group.getGroupName(), saved.getId());
+            if (member.getEmail().contains("@placeholder.com") && member.getPhoneNumber() != null) {
+                String smsBody = String.format("You're invited to join the group '%s'. Please sign in or register to the Expense Tracker to accept: http://localhost:3000/insights?groupId=%d&action=accept", group.getGroupName(), saved.getId());
+                smsService.sendSms(member.getPhoneNumber(), smsBody);
+            } else {
+                groupInviteEmailService.sendInviteEmail(member.getEmail(), group.getGroupName(), saved.getId());
+            }
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -288,16 +306,27 @@ public class GroupController {
                     .body(Map.of("message", "Group not found"));
         }
 
-        String inviteEmail = payload.get("email") instanceof String value ? value.trim().toLowerCase() : null;
-        if (inviteEmail == null || inviteEmail.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "email is required"));
+        String inviteIdentifier = payload.get("email") instanceof String value ? value.trim().toLowerCase() : null;
+        if (inviteIdentifier == null || inviteIdentifier.isBlank()) {
+            // Also check for "phoneNumber" in payload
+            inviteIdentifier = payload.get("phoneNumber") instanceof String val ? val.trim() : null;
         }
 
-        User invitedUser = userRepository.findByEmailIgnoreCase(inviteEmail)
+        if (inviteIdentifier == null || inviteIdentifier.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "email or phoneNumber is required"));
+        }
+
+        String finalIdentifier = inviteIdentifier;
+        User invitedUser = findUserByIdentifier(finalIdentifier)
                 .orElseGet(() -> {
                     User newUser = new User();
-                    newUser.setEmail(inviteEmail);
+                    if (finalIdentifier.contains("@")) {
+                        newUser.setEmail(finalIdentifier);
+                    } else {
+                        newUser.setEmail("temp_" + java.util.UUID.randomUUID() + "@placeholder.com");
+                        newUser.setPhoneNumber(finalIdentifier);
+                    }
                     newUser.setUsername(null);
                     newUser.setPassword(null);
                     newUser.setTotalIncome(0.0);
@@ -317,7 +346,12 @@ public class GroupController {
         membership.setStatus(MembershipStatus.PENDING);
         groupMembershipRepository.save(membership);
 
-        groupInviteEmailService.sendInviteEmail(invitedUser.getEmail(), groupOptional.get().getGroupName(), groupId);
+        if (finalIdentifier.contains("@")) {
+            groupInviteEmailService.sendInviteEmail(invitedUser.getEmail(), groupOptional.get().getGroupName(), groupId);
+        } else {
+            String smsBody = String.format("You're invited to join the group '%s'. Please sign in or register to the Expense Tracker to accept: http://localhost:3000/insights?groupId=%d&action=accept", groupOptional.get().getGroupName(), groupId);
+            smsService.sendSms(finalIdentifier, smsBody);
+        }
 
         return ResponseEntity.ok(Map.of("message", "Invitation sent"));
     }
@@ -387,8 +421,66 @@ public class GroupController {
         expense.setPayer(payer);
         expense.setExpenseGroup(groupOptional.get());
 
+        if (payload.containsKey("splits") && payload.get("splits") instanceof List<?> splitsList) {
+            for (Object splitObj : splitsList) {
+                if (splitObj instanceof Map<?, ?> splitMap) {
+                    String debtorEmail = splitMap.get("email") instanceof String s ? s : null;
+                    if (debtorEmail == null) {
+                        debtorEmail = splitMap.get("phoneNumber") instanceof String s ? s : null;
+                    }
+                    Double amountOwed = splitMap.get("amount") instanceof Number n ? n.doubleValue() : null;
+                    
+                    if (debtorEmail != null && amountOwed != null && amountOwed > 0) {
+                        Optional<User> debtorOpt = findUserByIdentifier(debtorEmail);
+                        if (debtorOpt.isPresent()) {
+                            ExpenseSplit split = new ExpenseSplit();
+                            split.setDebtor(debtorOpt.get());
+                            split.setAmountOwed(amountOwed);
+                            split.setGroupExpense(expense);
+                            expense.getSplits().add(split);
+                        }
+                    }
+                }
+            }
+        }
+
         GroupExpense saved = groupExpenseRepository.save(expense);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    /**
+     * GET /api/groups/{groupId}/settlements
+     * Get the simplified debts (who owes whom) for a group
+     */
+    @GetMapping("/{groupId}/settlements")
+    public ResponseEntity<?> getSettlements(@PathVariable Long groupId, Authentication authentication) {
+        String requesterEmail = resolveEmail(authentication);
+        if (requesterEmail == null || requesterEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not authenticated"));
+        }
+
+        Optional<ExpenseGroup> groupOptional = expenseGroupRepository.findById(groupId);
+        if (groupOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Group not found"));
+        }
+
+        List<Debt> settlements = debtCalculationService.calculateSettlements(groupOptional.get());
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Debt debt : settlements) {
+            result.add(Map.of(
+                "debtor", debt.debtor.getFullName() != null ? debt.debtor.getFullName() : (debt.debtor.getPhoneNumber() != null ? debt.debtor.getPhoneNumber() : debt.debtor.getEmail()),
+                "debtorEmail", debt.debtor.getEmail(),
+                "debtorPhoneNumber", debt.debtor.getPhoneNumber() != null ? debt.debtor.getPhoneNumber() : "",
+                "creditor", debt.creditor.getFullName() != null ? debt.creditor.getFullName() : (debt.creditor.getPhoneNumber() != null ? debt.creditor.getPhoneNumber() : debt.creditor.getEmail()),
+                "creditorEmail", debt.creditor.getEmail(),
+                "amount", debt.amount
+            ));
+        }
+
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -405,21 +497,32 @@ public class GroupController {
         }
 
         if (request == null
-                || request.getDebtorEmail() == null
-                || request.getDebtorEmail().isBlank()
                 || request.getCreditorName() == null
                 || request.getCreditorName().isBlank()
                 || request.getAmountOwed() == null
                 || request.getAmountOwed() <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "debtorEmail, creditorName, and amountOwed are required"));
+                    .body(Map.of("message", "debtorEmail (or phoneNumber), creditorName, and amountOwed are required"));
         }
 
-        emailReminderService.sendGroupReminder(
-                request.getDebtorEmail().trim(),
-                request.getCreditorName().trim(),
-                request.getAmountOwed()
-        );
+        String debtorIdentifier = request.getDebtorEmail();
+        if (debtorIdentifier != null && !debtorIdentifier.isBlank()) {
+            if (debtorIdentifier.contains("@placeholder.com")) {
+                // Find user by email to get phone number
+                Optional<User> u = userRepository.findByEmailIgnoreCase(debtorIdentifier);
+                if (u.isPresent() && u.get().getPhoneNumber() != null) {
+                    System.out.println("STUB: Sending SMS reminder to " + u.get().getPhoneNumber() + " that they owe " + request.getCreditorName() + " $" + request.getAmountOwed());
+                }
+            } else if (debtorIdentifier.contains("@")) {
+                emailReminderService.sendGroupReminder(
+                        debtorIdentifier.trim(),
+                        request.getCreditorName().trim(),
+                        request.getAmountOwed()
+                );
+            } else {
+                System.out.println("STUB: Sending SMS reminder to " + debtorIdentifier + " that they owe " + request.getCreditorName() + " $" + request.getAmountOwed());
+            }
+        }
 
         return ResponseEntity.ok(Map.of("message", "Reminder sent"));
     }
@@ -455,6 +558,15 @@ public class GroupController {
         groupMembershipRepository.save(membership);
 
         return ResponseEntity.ok(Map.of("message", "Invitation accepted"));
+    }
+
+    private Optional<User> findUserByIdentifier(String identifier) {
+        if (identifier == null) return Optional.empty();
+        if (identifier.contains("@")) {
+            return userRepository.findByEmailIgnoreCase(identifier);
+        } else {
+            return userRepository.findByPhoneNumber(identifier);
+        }
     }
 
     private String resolveEmail(Authentication authentication) {

@@ -24,6 +24,9 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "phone_number", unique = true, nullable = true)
+    private String phoneNumber;
+
     // Allow null to match DB changes for OAuth users.
     @Column(nullable = true)
     private String password;
@@ -50,14 +53,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<SavingsGoal> savingsGoals = new ArrayList<>();
-
-    /**
-     * One-to-Many relationship with GroupMembership
-     * Includes membership status (PENDING/ACCEPTED)
-     */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<GroupMembership> groupMemberships = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -89,6 +84,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getPassword() {
@@ -153,13 +156,5 @@ public class User {
 
     public void setSavingsGoals(List<SavingsGoal> savingsGoals) {
         this.savingsGoals = savingsGoals;
-    }
-
-    public List<GroupMembership> getGroupMemberships() {
-        return groupMemberships;
-    }
-
-    public void setGroupMemberships(List<GroupMembership> groupMemberships) {
-        this.groupMemberships = groupMemberships;
     }
 }

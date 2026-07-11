@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "group_expenses")
@@ -55,6 +57,9 @@ public class GroupExpense {
     @JoinColumn(name = "group_id", nullable = false)
     @JsonIgnore
     private ExpenseGroup expenseGroup;
+
+    @OneToMany(mappedBy = "groupExpense", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ExpenseSplit> splits = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -150,5 +155,13 @@ public class GroupExpense {
 
     public void setExpenseGroup(ExpenseGroup expenseGroup) {
         this.expenseGroup = expenseGroup;
+    }
+
+    public List<ExpenseSplit> getSplits() {
+        return splits;
+    }
+
+    public void setSplits(List<ExpenseSplit> splits) {
+        this.splits = splits;
     }
 }

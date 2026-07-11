@@ -30,7 +30,7 @@ public class AiInsightsService {
     @Value("${gemini.api.key:}")
     private String geminiApiKey;
 
-    @Value("${gemini.model:gemini-1.5-flash}")
+    @Value("${gemini.model:gemini-pro}")
     private String geminiModel;
 
     private final TransactionRepository transactionRepository;
@@ -49,10 +49,11 @@ public class AiInsightsService {
      * @param email the user's email
      * @return AI-generated insights as a string
      */
-    public String getAiCoachInsights(String email) {
+    public String getAiCoachInsights(String email, String customApiKey) {
         try {
             // Validate API key
-            if (geminiApiKey == null || geminiApiKey.isBlank()) {
+            String activeKey = (customApiKey != null && !customApiKey.isBlank()) ? customApiKey : geminiApiKey;
+            if (activeKey == null || activeKey.isBlank()) {
                 return "❌ AI Coach is not configured. Please set your Gemini API key to enable insights.";
             }
 
@@ -82,7 +83,7 @@ public class AiInsightsService {
             String prompt = generateFinancialPrompt(categorySpending, userOptional.get());
 
             // Call Gemini API and return response
-            return callGeminiApi(prompt);
+            return callGeminiApi(prompt, activeKey);
 
         } catch (Exception e) {
             log.error("Error generating AI insights", e);
@@ -145,12 +146,12 @@ public class AiInsightsService {
      * @param prompt the prompt to send to Gemini
      * @return the AI-generated response
      */
-    private String callGeminiApi(String prompt) {
+    private String callGeminiApi(String prompt, String apiKey) {
         try {
             String endpoint = String.format(
                     "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
                     geminiModel,
-                    geminiApiKey
+                    apiKey
             );
 
             HttpHeaders headers = new HttpHeaders();

@@ -1,6 +1,7 @@
 com\financetracker\controller\SavingsGoalController.class
 com\financetracker\repository\RecurringTransactionRepository.class
 com\financetracker\entity\Transaction.class
+com\financetracker\service\DebtCalculationService$Debt.class
 com\financetracker\dto\DailySpendingDTO.class
 com\financetracker\exception\InsufficientBalanceException.class
 com\financetracker\controller\UserController.class
@@ -37,6 +38,7 @@ com\financetracker\exception\ResourceNotFoundException.class
 com\financetracker\dto\SignUpRequest.class
 com\financetracker\entity\MembershipStatus.class
 com\financetracker\controller\AuthController.class
+com\financetracker\service\DebtCalculationService.class
 com\financetracker\controller\AIInsightsController.class
 com\financetracker\dto\GroupInviteRequest.class
 com\financetracker\repository\GroupExpenseRepository.class
@@ -54,6 +56,7 @@ com\financetracker\config\PersistenceConfig.class
 com\financetracker\dto\AuditLogDTO.class
 com\financetracker\dto\GroupReminderRequest.class
 com\financetracker\entity\GroupMembership.class
+com\financetracker\entity\ExpenseSplit.class
 com\financetracker\config\DataInitializer.class
 com\financetracker\entity\RecurringTransaction.class
 com\financetracker\controller\GroupController.class
@@ -64,5 +67,6 @@ com\financetracker\entity\User.class
 com\financetracker\controller\GoogleAuthController.class
 com\financetracker\service\GoogleAuthService.class
 com\financetracker\service\ImportService.class
+com\financetracker\service\SmsService.class
 com\financetracker\dto\CategorySpendingComparisonDTO.class
 com\financetracker\dto\BudgetResponseDTO.class
