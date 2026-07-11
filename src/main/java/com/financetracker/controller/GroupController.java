@@ -449,6 +449,43 @@ public class GroupController {
     }
 
     /**
+     * GET /api/groups/{groupId}/expenses
+     * Get all expenses for a group
+     */
+    @GetMapping("/{groupId}/expenses")
+    public ResponseEntity<?> getGroupExpenses(@PathVariable Long groupId, Authentication authentication) {
+        String requesterEmail = resolveEmail(authentication);
+        if (requesterEmail == null || requesterEmail.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not authenticated"));
+        }
+
+        Optional<ExpenseGroup> groupOptional = expenseGroupRepository.findById(groupId);
+        if (groupOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Group not found"));
+        }
+
+        List<GroupExpense> expenses = groupExpenseRepository.findByGroupId(groupId);
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (GroupExpense expense : expenses) {
+            Map<String, Object> expenseMap = new java.util.HashMap<>();
+            expenseMap.put("id", expense.getId());
+            expenseMap.put("description", expense.getDescription());
+            expenseMap.put("totalAmount", expense.getTotalAmount());
+            expenseMap.put("date", expense.getDate());
+            expenseMap.put("createdAt", expense.getCreatedAt());
+            expenseMap.put("payerName", expense.getPayer().getFullName() != null ? expense.getPayer().getFullName() : expense.getPayer().getUsername());
+            expenseMap.put("payerEmail", expense.getPayer().getEmail());
+            expenseMap.put("payerPhone", expense.getPayer().getPhoneNumber());
+            result.add(expenseMap);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * GET /api/groups/{groupId}/settlements
      * Get the simplified debts (who owes whom) for a group
      */

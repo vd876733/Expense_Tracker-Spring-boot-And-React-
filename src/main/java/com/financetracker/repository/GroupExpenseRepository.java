@@ -22,7 +22,7 @@ public interface GroupExpenseRepository extends JpaRepository<GroupExpense, Long
      * @param groupId the group's ID
      * @return List of expenses in the group
      */
-    @Query("SELECT ge FROM GroupExpense ge WHERE ge.expenseGroup.id = :groupId ORDER BY ge.date DESC")
+    @Query("SELECT ge FROM GroupExpense ge JOIN FETCH ge.payer WHERE ge.expenseGroup.id = :groupId ORDER BY ge.date DESC")
     List<GroupExpense> findByGroupId(@Param("groupId") Long groupId);
 
     /**

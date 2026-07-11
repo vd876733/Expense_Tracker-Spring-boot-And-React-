@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { getGroups, getGroupSettlements, sendGroupReminder, createGroup } from '../services/api';
+import { getGroups, getGroupSettlements, sendGroupReminder, createGroup, getGroupExpenses, addGroupExpense } from '../services/api';
 
 const SettlementPage = () => {
   const [groups, setGroups] = useState([]);
@@ -12,6 +12,14 @@ const SettlementPage = () => {
   const [isSettling, setIsSettling] = useState(false);
   const [settleError, setSettleError] = useState('');
   const [remindingStatus, setRemindingStatus] = useState({});
+
+  // Chat / Expenses State
+  const [activeTab, setActiveTab] = useState('chat');
+  const [groupExpenses, setGroupExpenses] = useState([]);
+  const [isFetchingExpenses, setIsFetchingExpenses] = useState(false);
+  const [newExpenseDesc, setNewExpenseDesc] = useState('');
+  const [newExpenseAmt, setNewExpenseAmt] = useState('');
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
 
   // Create Group Modal State
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
@@ -39,17 +47,50 @@ const SettlementPage = () => {
 
   useEffect(() => {
     if (activeGroup) {
-      const fetchSettlements = async () => {
+      const fetchGroupData = async () => {
         try {
-          const settlements = await getGroupSettlements(activeGroup.id);
+          setIsFetchingExpenses(true);
+          const [settlements, expenses] = await Promise.all([
+            getGroupSettlements(activeGroup.id),
+            getGroupExpenses(activeGroup.id)
+          ]);
           setDebts(settlements);
+          setGroupExpenses(expenses);
         } catch (error) {
-          console.error('Error fetching settlements', error);
+          console.error('Error fetching group data', error);
+        } finally {
+          setIsFetchingExpenses(false);
         }
       };
-      fetchSettlements();
+      fetchGroupData();
     }
   }, [activeGroup]);
+
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    if (!newExpenseDesc.trim() || !newExpenseAmt) return;
+    
+    setIsAddingExpense(true);
+    try {
+      await addGroupExpense(activeGroup.id, {
+        description: newExpenseDesc,
+        totalAmount: parseFloat(newExpenseAmt)
+      });
+      // Re-fetch data
+      const [settlements, expenses] = await Promise.all([
+        getGroupSettlements(activeGroup.id),
+        getGroupExpenses(activeGroup.id)
+      ]);
+      setDebts(settlements);
+      setGroupExpenses(expenses);
+      setNewExpenseDesc('');
+      setNewExpenseAmt('');
+    } catch (error) {
+      console.error('Failed to add expense', error);
+    } finally {
+      setIsAddingExpense(false);
+    }
+  };
 
   const handleRemindClick = async (debt) => {
     const debtId = `${debt.debtor}-${debt.creditor}`;
@@ -213,60 +254,122 @@ const SettlementPage = () => {
           </aside>
 
           <div className="space-y-6">
-            <section className="card bg-white dark:bg-slate-800 dark:text-white">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Simplified Debts</h2>
-                <span className="text-sm text-gray-500 dark:text-gray-300">
-                  {activeGroup ? activeGroup.groupName : 'Select a group'}
-                </span>
+            <section className="card bg-white dark:bg-slate-800 dark:text-white flex flex-col h-[600px]">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4 shrink-0">
+                <div className="flex gap-4 border-b border-gray-200 dark:border-slate-700 w-full pb-2">
+                  <button
+                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'chat' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                    onClick={() => setActiveTab('chat')}
+                  >
+                    Expenses Chat
+                  </button>
+                  <button
+                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'settlements' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                    onClick={() => setActiveTab('settlements')}
+                  >
+                    Settlements
+                  </button>
+                </div>
               </div>
               
               {!activeGroup ? (
-                <p className="text-gray-500">Please select a group from the sidebar to view settlements.</p>
-              ) : debts.length === 0 ? (
-                <p className="text-gray-500">No pending debts in this group! Everyone is settled up.</p>
+                <p className="text-gray-500 flex-1">Please select a group from the sidebar to view details.</p>
+              ) : activeTab === 'settlements' ? (
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                  {debts.length === 0 ? (
+                    <p className="text-gray-500">No pending debts in this group! Everyone is settled up.</p>
+                  ) : (
+                    debts.map((debt, idx) => {
+                      const debtId = `${debt.debtor}-${debt.creditor}`;
+                      const rStatus = remindingStatus[debtId];
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3 dark:border-slate-700 shrink-0"
+                        >
+                          <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              <strong>{debt.debtor}</strong> owes <strong>{debt.creditor}</strong>
+                            </p>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                              ${debt.amount.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleRemindClick(debt)}
+                              disabled={rStatus === 'sending' || rStatus === 'sent'}
+                              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                                rStatus === 'sent' ? 'border-emerald-600 text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30' :
+                                rStatus === 'error' ? 'border-red-600 text-red-700 bg-red-50 dark:bg-red-900/30' :
+                                'border-indigo-600 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-indigo-950'
+                              }`}
+                            >
+                              {rStatus === 'sending' ? 'Sending...' : rStatus === 'sent' ? 'Sent!' : rStatus === 'error' ? 'Failed' : 'Remind'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSettleUpClick(debt)}
+                              className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition dark:border-blue-400 dark:text-blue-200 dark:hover:bg-blue-950"
+                            >
+                              Settle Up
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               ) : (
-                <div className="space-y-3">
-                  {debts.map((debt, idx) => {
-                    const debtId = `${debt.debtor}-${debt.creditor}`;
-                    const rStatus = remindingStatus[debtId];
-                    return (
-                      <div
-                        key={idx}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3 dark:border-slate-700"
-                      >
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            <strong>{debt.debtor}</strong> owes <strong>{debt.creditor}</strong>
-                          </p>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                            ${debt.amount.toFixed(2)}
-                          </p>
+                <div className="flex flex-col flex-1 overflow-hidden h-full">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg mb-4 flex flex-col">
+                    {isFetchingExpenses ? (
+                      <p className="text-sm text-gray-500 text-center mt-auto mb-auto">Loading expenses...</p>
+                    ) : groupExpenses.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center mt-auto mb-auto">No expenses yet. Start by adding one below!</p>
+                    ) : (
+                      [...groupExpenses].reverse().map((expense, idx) => (
+                        <div key={idx} className="flex flex-col bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-slate-700 max-w-[80%] self-start w-full sm:w-auto min-w-[200px] shrink-0">
+                           <div className="flex items-baseline justify-between gap-4 mb-1 border-b border-gray-100 dark:border-slate-700/50 pb-1">
+                             <span className="font-semibold text-sm text-blue-700 dark:text-blue-400">{expense.payerName}</span>
+                             <span className="text-xs text-gray-400">{new Date(expense.date).toLocaleDateString()}</span>
+                           </div>
+                           <p className="text-gray-800 dark:text-gray-200 mt-1">{expense.description}</p>
+                           <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">${expense.totalAmount?.toFixed(2)}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleRemindClick(debt)}
-                            disabled={rStatus === 'sending' || rStatus === 'sent'}
-                            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                              rStatus === 'sent' ? 'border-emerald-600 text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30' :
-                              rStatus === 'error' ? 'border-red-600 text-red-700 bg-red-50 dark:bg-red-900/30' :
-                              'border-indigo-600 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-indigo-950'
-                            }`}
-                          >
-                            {rStatus === 'sending' ? 'Sending...' : rStatus === 'sent' ? 'Sent!' : rStatus === 'error' ? 'Failed' : 'Remind'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleSettleUpClick(debt)}
-                            className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition dark:border-blue-400 dark:text-blue-200 dark:hover:bg-blue-950"
-                          >
-                            Settle Up
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Chat Input */}
+                  <form onSubmit={handleAddExpense} className="flex gap-2 bg-white dark:bg-slate-800 p-2 rounded-lg border border-gray-200 dark:border-slate-700 shrink-0">
+                    <input
+                      type="text"
+                      placeholder="What did you pay for?"
+                      value={newExpenseDesc}
+                      onChange={(e) => setNewExpenseDesc(e.target.value)}
+                      className="flex-1 bg-transparent px-3 py-2 focus:outline-none dark:text-white text-sm min-w-0"
+                      required
+                    />
+                    <input
+                      type="number"
+                      placeholder="Amount ($)"
+                      value={newExpenseAmt}
+                      onChange={(e) => setNewExpenseAmt(e.target.value)}
+                      className="w-24 shrink-0 bg-transparent px-3 py-2 focus:outline-none dark:text-white border-l border-gray-200 dark:border-slate-700 text-sm"
+                      min="0.01"
+                      step="0.01"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      disabled={isAddingExpense || !newExpenseDesc.trim() || !newExpenseAmt}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50 shrink-0"
+                    >
+                      {isAddingExpense ? '...' : 'Send'}
+                    </button>
+                  </form>
                 </div>
               )}
             </section>

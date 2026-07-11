@@ -26,6 +26,8 @@ const API_ROUTES = {
   settleDebt: (debtId) => `/settlements/${debtId}/settle`,
   updateIncome: '/users/income',
   groupSettlements: (groupId) => `/groups/${groupId}/settlements`,
+  groupExpenses: (groupId) => `/groups/${groupId}/expenses`,
+  createGroupExpense: (groupId) => `/groups/${groupId}/expenses`,
   groupRemind: '/groups/remind',
 };
 
@@ -133,6 +135,43 @@ export const getGroupSettlements = async (groupId, options = {}) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching group settlements:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch group expenses
+ * @param {number} groupId - Group identifier
+ * @returns {Promise<Array>} List of group expenses
+ */
+export const getGroupExpenses = async (groupId, options = {}) => {
+  try {
+    const response = await apiClient.get(API_ROUTES.groupExpenses(groupId), options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching group expenses:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new group expense
+ * @param {number} groupId - Group identifier
+ * @param {Object} expenseData - { description, totalAmount, date }
+ * @returns {Promise<Object>} Created expense
+ */
+export const addGroupExpense = async (groupId, expenseData, options = {}) => {
+  try {
+    const response = await apiClient.post(API_ROUTES.createGroupExpense(groupId), expenseData, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating group expense:', error);
     throw error;
   }
 };
