@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../api';
+import api, { API_BASE_URL } from '../api';
 import { toast } from 'react-toastify';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -15,7 +15,8 @@ const Login = ({ setToken, setUserId }) => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', {
+      // Changed to use the explicit full URL
+      const response = await api.post(`${API_BASE_URL}/auth/login`, {
         username,
         password,
       });
@@ -47,7 +48,8 @@ const Login = ({ setToken, setUserId }) => {
       const idToken = credentialResponse.credential;
       console.log('Google ID token received, authenticating with backend...');
 
-      const response = await api.post('/auth/google', {
+      // 2. Send the Google ID Token to our Spring Boot backend using the explicit full URL
+      const response = await api.post(`${API_BASE_URL}/auth/google`, {
         idToken,
       });
 

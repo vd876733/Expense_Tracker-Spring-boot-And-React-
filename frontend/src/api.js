@@ -10,7 +10,7 @@ const getBaseUrl = () => {
   return 'http://localhost:8080/api';
 };
 
-const API_BASE_URL = getBaseUrl();
+export const API_BASE_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL.replace(/\/+$/, ''), // Ensures no trailing slash
