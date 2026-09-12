@@ -9,12 +9,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,17 +37,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**").disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/", "/error").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
                         // CSV Import explicitly requires authentication
                         .requestMatchers("/api/import/**").authenticated()
                         .anyRequest().authenticated()
@@ -56,8 +54,6 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             System.err.println("[SECURITY] 401 Unauthorized: path=" + request.getRequestURI() 
                                     + " reason=" + authException.getMessage());
-                            System.err.println("[SECURITY] Authorization header present? " + 
-                                    (request.getHeader("Authorization") != null));
                             response.sendError(401, "Unauthorized - Missing or invalid authentication");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -67,13 +63,26 @@ public class SecurityConfig {
                             response.sendError(403, "Forbidden");
                         })
                 )
-                // Removed COOP header that was causing postMessage warnings with Google Login
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "https://expense-tracker-spring-boot-and-rea.vercel.app"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
