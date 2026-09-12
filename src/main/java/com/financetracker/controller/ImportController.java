@@ -21,7 +21,7 @@ import java.util.HashMap;
  */
 @RestController
 @RequestMapping("/api/import")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "${ALLOWED_ORIGINS:http://localhost:3000}")
 public class ImportController {
 
     @Autowired

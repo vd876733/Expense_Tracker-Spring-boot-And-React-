@@ -107,11 +107,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     boolean existsByDescriptionAndCategoryAndAmountAndDate(String description, String category, Double amount, java.time.LocalDate date);
 
     @Query(value = "SELECT t.category AS category_name, " +
-            "SUM(CASE WHEN YEAR(t.date) = :currentYear AND MONTH(t.date) = :currentMonth THEN t.amount ELSE 0 END) AS current_month_total, " +
-            "SUM(CASE WHEN YEAR(t.date) = :previousYear AND MONTH(t.date) = :previousMonth THEN t.amount ELSE 0 END) AS previous_month_total " +
+            "SUM(CASE WHEN EXTRACT(YEAR FROM t.date) = :currentYear AND EXTRACT(MONTH FROM t.date) = :currentMonth THEN t.amount ELSE 0 END) AS current_month_total, " +
+            "SUM(CASE WHEN EXTRACT(YEAR FROM t.date) = :previousYear AND EXTRACT(MONTH FROM t.date) = :previousMonth THEN t.amount ELSE 0 END) AS previous_month_total " +
             "FROM transactions t " +
-            "WHERE (YEAR(t.date) = :currentYear AND MONTH(t.date) = :currentMonth) " +
-            "OR (YEAR(t.date) = :previousYear AND MONTH(t.date) = :previousMonth) " +
+            "WHERE (EXTRACT(YEAR FROM t.date) = :currentYear AND EXTRACT(MONTH FROM t.date) = :currentMonth) " +
+            "OR (EXTRACT(YEAR FROM t.date) = :previousYear AND EXTRACT(MONTH FROM t.date) = :previousMonth) " +
             "GROUP BY t.category",
             nativeQuery = true)
     List<CategorySpendingComparisonDTO> findCategorySpendingComparison(

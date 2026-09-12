@@ -38,7 +38,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/groups")
-@CrossOrigin(origins = "${ALLOWED_ORIGINS:http://localhost:3000,https://your-app.netlify.app}")
+@CrossOrigin(origins = "${ALLOWED_ORIGINS:http://localhost:3000}")
 public class GroupController {
 
     @Autowired
