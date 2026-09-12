@@ -32,12 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = request.getServletPath();
         if (path == null) {
             return false;
         }
-        // Skip only auth endpoints. Import/transactions endpoints must always pass through this filter.
-        return path.startsWith("/api/v1/auth/") || path.startsWith("/api/auth/");
+        return path.equals("/") || path.startsWith("/api/auth/") || path.startsWith("/api/v1/auth/") || path.equals("/error");
     }
 
     /**
