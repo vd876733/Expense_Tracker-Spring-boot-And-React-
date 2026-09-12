@@ -1,10 +1,9 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 // API Interceptor utility for handling JWT authentication
 class ApiInterceptor {
   constructor() {
-    const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, '');
-    this.baseURL = `${normalizedBaseUrl}/api`;
+    this.baseURL = API_BASE_URL.replace(/\/+$/, '');
   }
 
   // Get the current token from localStorage
