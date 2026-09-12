@@ -162,4 +162,92 @@ public class AuthController {
             this.password = password;
         }
     }
+
+    /**
+     * Authenticate with Google OAuth
+     *
+     * @param request contains Google idToken or token
+     * @return JWT token and userId
+     */
+    @PostMapping("/google")
+    public ResponseEntity<?> authenticateWithGoogle(@RequestBody java.util.Map<String, String> request) {
+        String token = request.get("idToken");
+        if (token == null || token.isBlank()) {
+            token = request.get("token");
+        }
+        
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Google ID token is required");
+        }
+
+        try {
+            // Verify token using Google API Client
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier = 
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
+                    new com.google.api.client.http.javanet.NetHttpTransport(), 
+                    com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance())
+                // .setAudience(...) can be configured here if strictly needed
+                .build();
+                
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken googleIdToken = verifier.verify(token);
+            if (googleIdToken == null) {
+                java.util.Map<String, String> error = new java.util.HashMap<>();
+                error.put("error", "Invalid Google ID token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+            
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = googleIdToken.getPayload();
+            String email = payload.getEmail();
+            
+            if (email == null || email.isBlank()) {
+                java.util.Map<String, String> error = new java.util.HashMap<>();
+                error.put("error", "Google token missing email");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+
+            // Check if user exists in UserRepository
+            User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
+            
+            // If user does not exist, create new record
+            if (user == null) {
+                user = new User();
+                user.setEmail(email);
+                
+                // Generate a unique username based on email
+                String baseUsername = email.split("@")[0];
+                String uniqueUsername = baseUsername;
+                int suffix = 1;
+                while (userRepository.existsByUsername(uniqueUsername)) {
+                    uniqueUsername = baseUsername + suffix++;
+                }
+                user.setUsername(uniqueUsername);
+                
+                // Set a generated random password
+                String randomPassword = java.util.UUID.randomUUID().toString();
+                user.setPassword(passwordEncoder != null ? passwordEncoder.encode(randomPassword) : randomPassword);
+                
+                if (payload.get("name") != null) {
+                    user.setFullName((String) payload.get("name"));
+                }
+                if (payload.get("picture") != null) {
+                    user.setProfilePictureUrl((String) payload.get("picture"));
+                }
+                user.setTotalIncome(10000.0);
+                
+                user = userRepository.save(user);
+            }
+
+            // Generate JWT token
+            String jwtToken = tokenProvider.generateTokenFromUsername(user.getUsername());
+            
+            return ResponseEntity.ok(new JwtAuthenticationResponse(jwtToken, user.getId()));
+            
+        } catch (Exception e) {
+            logger.error("Google authentication failed", e);
+            java.util.Map<String, String> error = new java.util.HashMap<>();
+            error.put("error", "Google authentication failed");
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
 }
