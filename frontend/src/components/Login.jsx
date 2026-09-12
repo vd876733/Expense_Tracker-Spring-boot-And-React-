@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { toast } from 'react-toastify';
 import { GoogleLogin } from '@react-oauth/google';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
 
 const Login = ({ setToken, setUserId }) => {
   const [username, setUsername] = useState('');
@@ -17,7 +15,7 @@ const Login = ({ setToken, setUserId }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      const response = await api.post('/auth/login', {
         username,
         password,
       });
@@ -47,16 +45,16 @@ const Login = ({ setToken, setUserId }) => {
 
     try {
       const idToken = credentialResponse.credential;
-      console.log('Google ID token:', idToken);
+      console.log('Google ID token received, authenticating with backend...');
 
-      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/google`, {
+      const response = await api.post('/auth/google', {
         idToken,
       });
 
       const payload = response.data || {};
       const { token, user } = payload;
       if (!token) {
-        toast.error('Google sign-in failed. Please try again.');
+        toast.error('Google authentication failed. Please try again.');
         return;
       }
 
@@ -84,11 +82,11 @@ const Login = ({ setToken, setUserId }) => {
         setUserId(String(user.id));
       }
       setToken(token);
-      toast.success('Signed in with Google.');
+      toast.success('Signed in securely with Google.');
       navigate('/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error(error.response?.data?.message || 'Google sign-in failed. Please try again.');
+      toast.error(error.response?.data?.message || 'Google sign-in failed on the server. Please try again.');
     }
   };
 
@@ -159,7 +157,7 @@ const Login = ({ setToken, setUserId }) => {
             </div>
           </div>
           <div className="w-full flex justify-center">
-            <div className="w-full">
+            <div className="w-full flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleLoginSuccess}
                 onError={handleGoogleLoginError}
