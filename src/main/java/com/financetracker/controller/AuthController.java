@@ -190,7 +190,7 @@ public class AuthController {
                 new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
                     new com.google.api.client.http.javanet.NetHttpTransport(), 
                     com.google.api.client.json.gson.GsonFactory.getDefaultInstance())
-                .setAudience(java.util.Collections.singletonList(googleClientId))
+                .setAudience(java.util.Collections.singletonList(googleClientId.trim()))
                 .build();
                 
             com.google.api.client.googleapis.auth.oauth2.GoogleIdToken googleIdToken = verifier.verify(token);
@@ -250,7 +250,15 @@ public class AuthController {
             logger.error("Google authentication failed", e);
             java.util.Map<String, String> error = new java.util.HashMap<>();
             error.put("error", "Google authentication failed");
-            error.put("message", e.getMessage());
+            error.put("message", e.toString());
+            
+            // Collect stack trace for debugging
+            StringBuilder sb = new StringBuilder();
+            for (StackTraceElement element : e.getStackTrace()) {
+                sb.append(element.toString()).append("\n");
+            }
+            error.put("trace", sb.toString());
+            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
