@@ -1,4 +1,14 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const getBaseUrl = () => {
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return process.env.REACT_APP_API_BASE_URL;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://expense-tracker-spring-boot-and-react.onrender.com/api';
+  }
+  return 'http://localhost:8080/api';
+};
+
+const API_BASE_URL = getBaseUrl();
 
 // API Interceptor utility for handling JWT authentication
 class ApiInterceptor {
