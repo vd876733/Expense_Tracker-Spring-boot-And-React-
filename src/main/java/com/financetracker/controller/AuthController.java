@@ -8,6 +8,7 @@ import com.financetracker.security.TokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -163,6 +164,9 @@ public class AuthController {
         }
     }
 
+    @Value("${app.googleClientId:884510669054-acldripspk9ucf1kp50ad5qlv2l0fv6a.apps.googleusercontent.com}")
+    private String googleClientId;
+
     /**
      * Authenticate with Google OAuth
      *
@@ -186,7 +190,7 @@ public class AuthController {
                 new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
                     new com.google.api.client.http.javanet.NetHttpTransport(), 
                     com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance())
-                // .setAudience(...) can be configured here if strictly needed
+                .setAudience(java.util.Collections.singletonList(googleClientId))
                 .build();
                 
             com.google.api.client.googleapis.auth.oauth2.GoogleIdToken googleIdToken = verifier.verify(token);
