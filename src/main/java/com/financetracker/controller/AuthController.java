@@ -241,8 +241,8 @@ public class AuthController {
                 user = userRepository.save(user);
             }
 
-            // Generate JWT token
-            String jwtToken = tokenProvider.generateTokenFromUsername(user.getUsername());
+            // Generate JWT token using username (or fallback to email if username is null)
+            String jwtToken = tokenProvider.generateTokenFromUsernameAndEmail(user.getUsername(), user.getEmail());
             
             return ResponseEntity.ok(new JwtAuthenticationResponse(jwtToken, user.getId()));
             
