@@ -241,12 +241,13 @@ public class AuthController {
                 user = userRepository.save(user);
             }
 
-            // Generate JWT token using username (or fallback to email if username is null)
-            String jwtToken = tokenProvider.generateTokenFromUsernameAndEmail(user.getUsername(), user.getEmail());
+            java.util.Map<String, Object> responseBody = new java.util.HashMap<>();
+            responseBody.put("token", jwtToken);
+            responseBody.put("user", user);
             
-            return ResponseEntity.ok(new JwtAuthenticationResponse(jwtToken, user.getId()));
+            return ResponseEntity.ok(responseBody);
             
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error("Google authentication failed", e);
             java.util.Map<String, String> error = new java.util.HashMap<>();
             error.put("error", "Google authentication failed");
