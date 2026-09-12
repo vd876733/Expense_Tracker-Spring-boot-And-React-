@@ -189,7 +189,7 @@ public class AuthController {
             com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier = 
                 new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
                     new com.google.api.client.http.javanet.NetHttpTransport(), 
-                    com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance())
+                    com.google.api.client.json.gson.GsonFactory.getDefaultInstance())
                 .setAudience(java.util.Collections.singletonList(googleClientId))
                 .build();
                 
