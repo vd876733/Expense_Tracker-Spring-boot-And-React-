@@ -21,8 +21,7 @@ import java.util.Map;
  * Handles Google Sign-In token exchange.
  */
 @RestController
-@RequestMapping("/api/v1/auth")
-@CrossOrigin(origins = "${ALLOWED_ORIGINS:http://localhost:3000}")
+@RequestMapping("/api/auth")
 public class GoogleAuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(GoogleAuthController.class);
