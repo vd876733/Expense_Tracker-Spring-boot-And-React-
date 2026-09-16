@@ -8,12 +8,8 @@ import Register from './components/Register';
 import SettlementPage from './components/SettlementPage';
 import InsightsPage from './components/InsightsPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
-
-// Protected Route component
-const ProtectedRoute = ({ children, token }) => {
-  return token ? children : <Navigate to="/login" replace />;
-};
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -36,7 +32,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute token={token}>
+                <ProtectedRoute>
                   <Dashboard onLogout={handleLogout} userId={userId} />
                 </ProtectedRoute>
               }
@@ -44,7 +40,7 @@ function App() {
             <Route
               path="/settlements"
               element={
-                <ProtectedRoute token={token}>
+                <ProtectedRoute>
                   <SettlementPage />
                 </ProtectedRoute>
               }
@@ -52,7 +48,7 @@ function App() {
             <Route
               path="/insights"
               element={
-                <ProtectedRoute token={token}>
+                <ProtectedRoute>
                   <InsightsPage />
                 </ProtectedRoute>
               }

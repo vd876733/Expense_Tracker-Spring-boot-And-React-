@@ -63,10 +63,19 @@ public class AuthController {
             );
 
             String token = tokenProvider.generateToken(authentication);
-                Long userId = userRepository.findByUsername(loginRequest.getUsername())
-                    .map(User::getId)
-                    .orElse(null);
-                return ResponseEntity.ok(new JwtAuthenticationResponse(token, userId));
+            User user = userRepository.findByUsername(loginRequest.getUsername()).orElse(null);
+            
+            java.util.Map<String, Object> responseBody = new java.util.HashMap<>();
+            responseBody.put("token", token);
+            responseBody.put("accessToken", token);
+            if (user != null) {
+                responseBody.put("userId", user.getId());
+                responseBody.put("username", user.getUsername());
+                responseBody.put("email", user.getEmail());
+                responseBody.put("user", user);
+            }
+            
+            return ResponseEntity.ok(responseBody);
         } catch (Exception e) {
             logger.error("Login failed for username: {}", loginRequest != null ? loginRequest.getUsername() : null, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -246,6 +255,10 @@ public class AuthController {
 
             java.util.Map<String, Object> responseBody = new java.util.HashMap<>();
             responseBody.put("token", jwtToken);
+            responseBody.put("accessToken", jwtToken);
+            responseBody.put("userId", user.getId());
+            responseBody.put("username", user.getUsername());
+            responseBody.put("email", user.getEmail());
             responseBody.put("user", user);
             
             return ResponseEntity.ok(responseBody);
