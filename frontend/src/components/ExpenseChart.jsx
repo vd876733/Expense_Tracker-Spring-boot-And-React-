@@ -165,4 +165,4 @@ const ExpenseChart = ({ transactions = [], formatCurrency }) => {
   );
 };
 
-export default ExpenseChart;
+export default React.memo(ExpenseChart);

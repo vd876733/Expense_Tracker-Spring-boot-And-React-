@@ -92,4 +92,4 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
   );
 };
 
-export default DailySpendingAreaChart;
+export default React.memo(DailySpendingAreaChart);

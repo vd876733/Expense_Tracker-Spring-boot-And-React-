@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Dashboard from './components/Dashboard';
-import Login from './components/Login';
-import Register from './components/Register';
-import SettlementPage from './components/SettlementPage';
-import InsightsPage from './components/InsightsPage';
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Login = lazy(() => import('./components/Login'));
+const Register = lazy(() => import('./components/Register'));
+const SettlementPage = lazy(() => import('./components/SettlementPage'));
+const InsightsPage = lazy(() => import('./components/InsightsPage'));
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
@@ -26,35 +26,37 @@ function App() {
     <ErrorBoundary>
       <Router>
         <div className="App">
-          <Routes>
-            <Route path="/login" element={<Login setToken={setToken} setUserId={setUserId} />} />
-            <Route path="/register" element={<Register setToken={setToken} setUserId={setUserId} />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard onLogout={handleLogout} userId={userId} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settlements"
-              element={
-                <ProtectedRoute>
-                  <SettlementPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/insights"
-              element={
-                <ProtectedRoute>
-                  <InsightsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
-          </Routes>
+          <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+            <Routes>
+              <Route path="/login" element={<Login setToken={setToken} setUserId={setUserId} />} />
+              <Route path="/register" element={<Register setToken={setToken} setUserId={setUserId} />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard onLogout={handleLogout} userId={userId} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settlements"
+                element={
+                  <ProtectedRoute>
+                    <SettlementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/insights"
+                element={
+                  <ProtectedRoute>
+                    <InsightsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
+            </Routes>
+          </Suspense>
           <ToastContainer
             //position="bottom-right"
             position="bottom-right"

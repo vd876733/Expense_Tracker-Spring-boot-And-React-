@@ -843,7 +843,7 @@ const Dashboard = ({ onLogout, userId }) => {
     EUR: 'de-DE',
   };
 
-  const formatCurrency = (amountInUSD) => {
+  const formatCurrency = useCallback((amountInUSD) => {
     if (amountInUSD === null || amountInUSD === undefined || Number.isNaN(Number(amountInUSD))) {
       return 'N/A';
     }
@@ -858,7 +858,7 @@ const Dashboard = ({ onLogout, userId }) => {
     }).format(converted);
     const formatted = `${symbol}${formattedNumber}`;
     return numericValue < 0 ? `-${formatted}` : formatted;
-  };
+  }, [selectedCurrency]);
 
   const getChangeMessage = (currentEntry, previousEntry) => {
     const current = currentEntry.transaction || {};

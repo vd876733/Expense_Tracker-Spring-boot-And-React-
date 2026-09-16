@@ -61,4 +61,4 @@ const MonthlyCategoryDoughnut = ({ data = [] }) => {
   );
 };
 
-export default MonthlyCategoryDoughnut;
+export default React.memo(MonthlyCategoryDoughnut);

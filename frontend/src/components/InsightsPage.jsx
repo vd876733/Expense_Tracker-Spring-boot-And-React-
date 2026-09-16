@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, TrendingUp, Target, Key, Eye, EyeOff } from 'lucide-react';
 import { getSavingsGoals, getAiCoachInsights, getTransactions } from '../services/api';
@@ -9,15 +10,34 @@ import '../styles/InsightsPage.css';
 
 const InsightsPage = () => {
   const navigate = useNavigate();
-  const [savingsGoals, setSavingsGoals] = useState([]);
-  const [aiInsights, setAiInsights] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [tempApiKey, setTempApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
   const [showKeyText, setShowKeyText] = useState(false);
+  const { data: savingsGoals = [], isLoading: goalsLoading, error: goalsError } = useQuery({
+    queryKey: ['savingsGoals'],
+    queryFn: async () => {
+      const response = await getSavingsGoals();
+      return Array.isArray(response) ? response : [];
+    },
+  });
+
+  const { data: aiInsightsResponse, isLoading: insightsLoading, error: insightsError, refetch: refetchInsights } = useQuery({
+    queryKey: ['aiCoachInsights'],
+    queryFn: getAiCoachInsights,
+  });
+  const aiInsights = aiInsightsResponse?.insights || '';
+
+  const { data: transactions = [], isLoading: txLoading, error: txError } = useQuery({
+    queryKey: ['transactions', 'all'],
+    queryFn: async () => {
+      const response = await getTransactions();
+      return Array.isArray(response) ? response : [];
+    },
+  });
+
+  const loading = goalsLoading || insightsLoading || txLoading;
+  const error = goalsError || insightsError || txError ? (goalsError?.message || insightsError?.message || txError?.message || 'Failed to load insights and goals') : null;
 
   const handleSaveApiKey = () => {
     const trimmed = tempApiKey.trim();
@@ -28,7 +48,7 @@ const InsightsPage = () => {
     localStorage.setItem('gemini_api_key', trimmed);
     toast.success('Gemini API key saved! Refreshing insights...');
     setShowApiKeyInput(false);
-    fetchData();
+    refetchInsights();
   };
 
   const handleClearApiKey = () => {
@@ -36,56 +56,20 @@ const InsightsPage = () => {
     setTempApiKey('');
     toast.success('Custom API key removed. Using default server key.');
     setShowApiKeyInput(false);
-    fetchData();
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  /**
-   * Fetch savings goals and AI insights simultaneously
-   */
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch both endpoints in parallel
-      const [goalsResponse, insightsResponse, transactionsResponse] = await Promise.all([
-        getSavingsGoals(),
-        getAiCoachInsights(),
-        getTransactions(),
-      ]);
-
-      // Set state with fetched data
-      setSavingsGoals(Array.isArray(goalsResponse) ? goalsResponse : []);
-      setAiInsights(insightsResponse?.insights || '');
-      setTransactions(Array.isArray(transactionsResponse) ? transactionsResponse : []);
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err.message || 'Failed to load insights and goals');
-      toast.error('Failed to load data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    refetchInsights();
   };
 
   /**
    * Refresh data with loading indicator
    */
   const handleRefreshInsights = async () => {
-    try {
-      setRefreshing(true);
-      const insightsResponse = await getAiCoachInsights();
-      setAiInsights(insightsResponse?.insights || '');
-      toast.success('Insights refreshed!');
-    } catch (err) {
-      console.error('Error refreshing insights:', err);
+    setRefreshing(true);
+    const { isError } = await refetchInsights();
+    setRefreshing(false);
+    if (isError) {
       toast.error('Failed to refresh insights');
-    } finally {
-      setRefreshing(false);
+    } else {
+      toast.success('Insights refreshed!');
     }
   };
 
@@ -130,9 +114,6 @@ const InsightsPage = () => {
       {error && !loading && (
         <div className="error-banner">
           <p>⚠️ {error}</p>
-          <button onClick={fetchData} className="retry-button">
-            Retry
-          </button>
         </div>
       )}
 
