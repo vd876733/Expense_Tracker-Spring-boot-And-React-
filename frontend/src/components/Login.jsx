@@ -1,59 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { toast } from 'react-toastify';
-import { GoogleLogin } from '@react-oauth/google';
 
 const Login = ({ setToken, setUserId }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
+  const hasInitialized = useRef(false);
+  const googleButton = useRef(null);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Send requests to relative path, axios handles base URL
-      const response = await api.post('/auth/login', {
-        username,
-        password,
-      });
-
-      const { token, userId } = response.data;
-      localStorage.setItem('token', token);
-      if (Number.isFinite(Number(userId))) {
-        localStorage.setItem('userId', String(userId));
-        setUserId(String(userId));
-      }
-      setToken(token);
-      toast.success('Login successful!');
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    if (!credentialResponse?.credential) {
+  const handleGoogleLoginSuccess = async (response) => {
+    if (!response?.credential) {
       toast.error('Google sign-in failed. Please try again.');
       return;
     }
 
     try {
-      const idToken = credentialResponse.credential;
       console.log('Google ID token received, authenticating with backend...');
 
-      // Send requests to relative path, axios handles base URL
-      const response = await api.post('/auth/google', {
-        idToken,
+      // Ensure the token payload sends idToken directly
+      const apiResponse = await api.post('/auth/google', { 
+        idToken: response.credential 
       });
 
-      const payload = response.data || {};
+      const payload = apiResponse.data || {};
       const { token, user } = payload;
       if (!token) {
         toast.error('Google authentication failed. Please try again.');
@@ -92,8 +65,66 @@ const Login = ({ setToken, setUserId }) => {
     }
   };
 
-  const handleGoogleLoginError = () => {
-    toast.error('Google sign-in failed. Please try again.');
+  useEffect(() => {
+    if (hasInitialized.current) return;
+
+    const initializeGoogle = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '884510669054-acldripspk9ucf1kp50ad5qlv2l0fv6a.apps.googleusercontent.com',
+          callback: handleGoogleLoginSuccess,
+        });
+        
+        if (googleButton.current) {
+          window.google.accounts.id.renderButton(googleButton.current, {
+            theme: 'outline',
+            size: 'large',
+            width: '250',
+          });
+        }
+        
+        hasInitialized.current = true;
+      }
+    };
+
+    if (!window.google?.accounts?.id) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogle;
+      document.body.appendChild(script);
+    } else {
+      initializeGoogle();
+    }
+  }, []);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Send requests to relative path, axios handles base URL
+      const response = await api.post('/auth/login', {
+        username,
+        password,
+      });
+
+      const { token, userId } = response.data;
+      localStorage.setItem('token', token);
+      if (Number.isFinite(Number(userId))) {
+        localStorage.setItem('userId', String(userId));
+        setUserId(String(userId));
+      }
+      setToken(token);
+      toast.success('Login successful!');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -159,13 +190,7 @@ const Login = ({ setToken, setUserId }) => {
             </div>
           </div>
           <div className="w-full flex justify-center">
-            <div className="w-full flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleLoginSuccess}
-                onError={handleGoogleLoginError}
-                width="250"
-              />
-            </div>
+            <div ref={googleButton} className="w-full flex justify-center"></div>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600">
