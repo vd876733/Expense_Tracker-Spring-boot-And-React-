@@ -8,7 +8,7 @@ const Login = ({ setToken, setUserId }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   const hasInitialized = useRef(false);
   const googleButton = useRef(null);
 
@@ -21,18 +21,22 @@ const Login = ({ setToken, setUserId }) => {
     try {
       console.log('Google ID token received, authenticating with backend...');
 
-      // Ensure the token payload sends idToken directly
-      const apiResponse = await api.post('/auth/google', { 
-        idToken: response.credential 
+      const apiResponse = await api.post('/auth/google', {
+        idToken: response.credential,
       });
 
       const payload = apiResponse.data || {};
-      const { token, user } = payload;
+      
+      // Support both "token" and "accessToken" response keys
+      const token = payload.token || payload.accessToken;
+      const user = payload.user;
+
       if (!token) {
-        toast.error('Google authentication failed. Please try again.');
+        toast.error('Google authentication failed: Token missing from server response.');
         return;
       }
 
+      // 1. Store user and profile payload in LocalStorage
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('userProfile', JSON.stringify(user));
@@ -44,24 +48,42 @@ const Login = ({ setToken, setUserId }) => {
       const resolvedProfile = user
         ? { name: user.fullName, picture: user.profilePictureUrl }
         : null;
+
       if (resolvedProfile?.name || resolvedProfile?.picture) {
-        localStorage.setItem('googleUser', JSON.stringify({
-          name: resolvedProfile?.name || 'Google User',
-          picture: resolvedProfile?.picture || '',
-        }));
+        localStorage.setItem(
+          'googleUser',
+          JSON.stringify({
+            name: resolvedProfile?.name || 'Google User',
+            picture: resolvedProfile?.picture || '',
+          })
+        );
       }
 
+      // 2. Persist Auth Token and User ID
       localStorage.setItem('token', token);
-      if (Number.isFinite(Number(user?.id))) {
-        localStorage.setItem('userId', String(user.id));
-        setUserId(String(user.id));
+      
+      const resolvedUserId = user?.id || payload.userId;
+      if (Number.isFinite(Number(resolvedUserId))) {
+        localStorage.setItem('userId', String(resolvedUserId));
+        if (setUserId) setUserId(String(resolvedUserId));
       }
-      setToken(token);
+
+      if (setToken) setToken(token);
+
       toast.success('Signed in securely with Google.');
-      navigate('/dashboard');
+
+      // 3. Force redirection to Dashboard
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
+
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error(error.response?.data?.message || 'Google sign-in failed on the server. Please try again.');
+      toast.error(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        'Google sign-in failed on the server. Please try again.'
+      );
     }
   };
 
@@ -74,7 +96,7 @@ const Login = ({ setToken, setUserId }) => {
           client_id: '884510669054-acldripspk9ucf1kp50ad5qlv2l0fv6a.apps.googleusercontent.com',
           callback: handleGoogleLoginSuccess,
         });
-        
+
         if (googleButton.current) {
           window.google.accounts.id.renderButton(googleButton.current, {
             theme: 'outline',
@@ -82,7 +104,7 @@ const Login = ({ setToken, setUserId }) => {
             width: '250',
           });
         }
-        
+
         hasInitialized.current = true;
       }
     };
@@ -104,21 +126,23 @@ const Login = ({ setToken, setUserId }) => {
     setLoading(true);
 
     try {
-      // Send requests to relative path, axios handles base URL
       const response = await api.post('/auth/login', {
         username,
         password,
       });
 
-      const { token, userId } = response.data;
-      localStorage.setItem('token', token);
+      const { token, accessToken, userId } = response.data;
+      const jwtToken = token || accessToken;
+
+      localStorage.setItem('token', jwtToken);
       if (Number.isFinite(Number(userId))) {
         localStorage.setItem('userId', String(userId));
-        setUserId(String(userId));
+        if (setUserId) setUserId(String(userId));
       }
-      setToken(token);
+      if (setToken) setToken(jwtToken);
+
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed. Please try again.');
