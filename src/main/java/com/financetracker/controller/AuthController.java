@@ -190,7 +190,9 @@ public class AuthController {
         }
         
         if (token == null || token.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Google ID token is required");
+            java.util.Map<String, String> error = new java.util.HashMap<>();
+            error.put("message", "Google ID token is required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
 
         try {
@@ -245,7 +247,7 @@ public class AuthController {
                 if (payload.get("picture") != null) {
                     user.setProfilePictureUrl((String) payload.get("picture"));
                 }
-                user.setTotalIncome(10000.0);
+                user.setTotalIncome(0.0);
                 
                 user = userRepository.save(user);
             }
