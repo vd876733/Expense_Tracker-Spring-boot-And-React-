@@ -1,3 +1,4 @@
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\CorsConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\DataInitializer.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\PasswordConfig.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\config\PersistenceConfig.java
@@ -7,8 +8,8 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\AuthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\BudgetController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ExportController.java
-D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\GoogleAuthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\GroupController.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\HealthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ImportController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\SavingsGoalController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\TransactionController.java
@@ -59,7 +60,6 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\DebtCalculationService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\EmailReminderService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\GeminiService.java
-D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\GoogleAuthService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\GroupInviteEmailService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\ImportService.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\service\SmsService.java

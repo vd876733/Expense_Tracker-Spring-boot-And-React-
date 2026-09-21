@@ -11,7 +11,9 @@ com\financetracker\entity\GroupExpense.class
 com\financetracker\service\GroupInviteEmailService.class
 com\financetracker\FinanceTrackerApplication.class
 com\financetracker\dto\LoginRequest.class
+com\financetracker\config\CorsConfig.class
 com\financetracker\entity\ExpenseGroup.class
+com\financetracker\controller\HealthController.class
 com\financetracker\service\GeminiService.class
 com\financetracker\controller\ExportController.class
 com\financetracker\security\JwtAuthenticationFilter.class
@@ -64,9 +66,8 @@ com\financetracker\dto\JwtAuthenticationResponse.class
 com\financetracker\security\TokenProvider.class
 com\financetracker\repository\BudgetRepository.class
 com\financetracker\entity\User.class
-com\financetracker\controller\GoogleAuthController.class
-com\financetracker\service\GoogleAuthService.class
 com\financetracker\service\ImportService.class
 com\financetracker\service\SmsService.class
 com\financetracker\dto\CategorySpendingComparisonDTO.class
 com\financetracker\dto\BudgetResponseDTO.class
+com\financetracker\entity\RecurringTransaction$RecurringTransactionBuilder.class
