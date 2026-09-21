@@ -50,7 +50,7 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
     <div className="card bg-white dark:bg-slate-800 dark:border-slate-700/60">
       <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{title}</h2>
       <div className="w-full h-80">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="dailySpendingGradient" x1="0" y1="0" x2="0" y2="1">

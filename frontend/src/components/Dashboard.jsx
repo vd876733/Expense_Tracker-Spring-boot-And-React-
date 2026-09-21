@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
-import { History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
+import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -109,6 +109,7 @@ const Dashboard = ({ onLogout, userId }) => {
   };
   const [notifications, setNotifications] = useState(getInitialNotifications);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const addNotification = useCallback(({ title, description, category, type, timestamp }) => {
     setNotifications((prev) => {
@@ -934,8 +935,16 @@ const Dashboard = ({ onLogout, userId }) => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Fixed Sidebar */}
-      <div className="bg-slate-900 w-64 text-slate-300 min-h-screen p-6 flex flex-col justify-between shrink-0">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-900 text-slate-300 p-6 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div>
           {/* Branding Header */}
           <div className="flex items-center gap-3 mb-8">
@@ -995,16 +1004,24 @@ const Dashboard = ({ onLogout, userId }) => {
         <div className="max-w-7xl mx-auto">
         {/* Top Search & Profile Row */}
         <div className="flex justify-between items-center mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
-            <input 
-              type="text" 
-              placeholder="Search transactions, categories, or anything..." 
-              className="rounded-full pl-10 pr-4 py-2 text-sm w-96 outline-none transition-colors bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="flex items-center gap-4">
+            <button 
+              className="block md:hidden p-2 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="relative hidden sm:flex w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <input 
+                type="text" 
+                placeholder="Search transactions, categories, or anything..." 
+                className="rounded-full pl-10 pr-4 py-2 text-sm w-full outline-none transition-colors bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative">
               <button 
                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
@@ -1105,7 +1122,7 @@ const Dashboard = ({ onLogout, userId }) => {
         {activeTab === 'dashboard' && (
           <div className="space-y-8 mb-8">
             {/* Greeting & Action Buttons Row */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               ☀️ Good Morning, {googleUser ? googleUser.name.split(' ')[0] : 'Varad'}!
@@ -1114,7 +1131,7 @@ const Dashboard = ({ onLogout, userId }) => {
               Here's your financial overview for this month.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap md:flex-nowrap gap-2">
 
             <button
               onClick={() => navigate('/settlements')}
@@ -1136,7 +1153,7 @@ const Dashboard = ({ onLogout, userId }) => {
         </div>
 
         {/* SmartInsights Replacement: 5-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
           {/* Top Spending Category */}
           <div className="bg-blue-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-blue-100 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
@@ -1237,7 +1254,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         <Stack spacing={4} sx={{ mb: 4 }}>
           {/* Summary Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Income Card */}
             <div className="bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
@@ -1343,7 +1360,7 @@ const Dashboard = ({ onLogout, userId }) => {
           <div className="space-y-8 mb-8">
 
           {/* Controls Panel */}
-          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 w-full">
             
             {/* Title */}
             <div>
@@ -1572,7 +1589,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto w-full">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200 dark:bg-slate-900 dark:border-slate-700">
                       <tr>
@@ -1674,7 +1691,7 @@ const Dashboard = ({ onLogout, userId }) => {
         {activeTab === 'analytics' && (
           <div className="space-y-8 mb-8">
 {/* Controls Panel */}
-          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 w-full">
             
             {/* Title */}
             <div>
@@ -1869,7 +1886,7 @@ const Dashboard = ({ onLogout, userId }) => {
           onClose={() => setIsBudgetModalOpen(false)}
           fullWidth
           maxWidth="sm"
-          PaperProps={{ className: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-2xl shadow-2xl' }}
+          PaperProps={{ className: 'w-11/12 max-w-lg mx-auto p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl' }}
           BackdropProps={{ className: 'bg-black/60 backdrop-blur-sm' }}
         >
           <DialogTitle className="text-slate-900 dark:text-slate-100 font-bold">Set Monthly Budget</DialogTitle>

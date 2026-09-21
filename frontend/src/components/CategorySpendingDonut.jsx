@@ -165,7 +165,7 @@ const CategorySpendingDonut = ({ transactions = [], title = 'Spending by Categor
         <div className="space-y-4">
           {/* Chart */}
           <div className="w-full h-80">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={chartData}

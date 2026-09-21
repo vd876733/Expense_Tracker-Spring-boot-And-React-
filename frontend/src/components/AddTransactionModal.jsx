@@ -91,7 +91,7 @@ const AddTransactionModal = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-2xl shadow-2xl p-6 text-left align-middle transition-all">
+              <Dialog.Panel className="w-11/12 max-w-lg mx-auto transform bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-left align-middle transition-all">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <Dialog.Title className="text-2xl font-bold text-slate-900 dark:text-slate-100">
