@@ -69,11 +69,11 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
             <YAxis
               stroke={axisStroke}
               width={80}
-              tickFormatter={(value) => (formatValue ? formatValue(value) : `$${Number(value).toFixed(2)}`)}
+              tickFormatter={(value) => (formatValue ? formatValue(value) : `₹${Number(value).toFixed(2)}`)}
             />
             <Tooltip
               formatter={(value) => [
-                formatValue ? formatValue(Number(value)) : `$${Number(value).toFixed(2)}`,
+                formatValue ? formatValue(Number(value)) : `₹${Number(value).toFixed(2)}`,
                 'Total',
               ]}
               labelFormatter={formatDateLabel}

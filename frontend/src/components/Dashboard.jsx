@@ -102,13 +102,7 @@ const Dashboard = ({ onLogout, userId }) => {
   const [isMonthlyTotalsLoading, setIsMonthlyTotalsLoading] = useState(false);
   const [dailySpendingChartData, setDailySpendingChartData] = useState([]);
   const [isDailySpendingLoading, setIsDailySpendingLoading] = useState(false);
-  const currencyStorageKey = 'selectedCurrency';
   const incomeStorageKey = 'userIncome';
-  const getInitialCurrency = () => {
-    const stored = localStorage.getItem(currencyStorageKey);
-    return stored === 'USD' || stored === 'EUR' || stored === 'INR' ? stored : 'INR';
-  };
-  const [selectedCurrency, setSelectedCurrency] = useState(getInitialCurrency);
   const getInitialIncome = () => {
     const stored = localStorage.getItem(incomeStorageKey);
     const parsed = Number(stored);
@@ -220,9 +214,7 @@ const Dashboard = ({ onLogout, userId }) => {
     };
   }, [customEndDate, customStartDate, dateFilter]);
 
-  useEffect(() => {
-    localStorage.setItem(currencyStorageKey, selectedCurrency);
-  }, [selectedCurrency]);
+
 
   useEffect(() => {
     localStorage.setItem(incomeStorageKey, String(income));
@@ -826,40 +818,18 @@ const Dashboard = ({ onLogout, userId }) => {
     (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
   );
 
-  const EXCHANGE_RATES = {
-    USD: 1,
-    INR: 83.5,
-    EUR: 0.92,
-  };
-
-  const CURRENCY_SYMBOLS = {
-    USD: '$',
-    INR: '₹',
-    EUR: '€',
-  };
-
-  const CURRENCY_LOCALES = {
-    USD: 'en-US',
-    INR: 'en-IN',
-    EUR: 'de-DE',
-  };
-
-  const formatCurrency = useCallback((amountInUSD) => {
-    if (amountInUSD === null || amountInUSD === undefined || Number.isNaN(Number(amountInUSD))) {
+  const formatCurrency = useCallback((amount) => {
+    if (amount === null || amount === undefined || Number.isNaN(Number(amount))) {
       return 'N/A';
     }
-    const numericValue = Number(amountInUSD);
-    const rate = EXCHANGE_RATES[selectedCurrency] ?? 1;
-    const converted = Math.abs(numericValue) * rate;
-    const locale = CURRENCY_LOCALES[selectedCurrency] ?? 'en-US';
-    const symbol = CURRENCY_SYMBOLS[selectedCurrency] ?? '$';
-    const formattedNumber = new Intl.NumberFormat(locale, {
+    const numericValue = Number(amount);
+    const formattedNumber = new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(converted);
-    const formatted = `${symbol}${formattedNumber}`;
+    }).format(Math.abs(numericValue));
+    const formatted = `₹${formattedNumber}`;
     return numericValue < 0 ? `-${formatted}` : formatted;
-  }, [selectedCurrency]);
+  }, []);
 
   const getChangeMessage = (currentEntry, previousEntry) => {
     const current = currentEntry.transaction || {};
@@ -1016,26 +986,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60">
-              {[
-                { symbol: '$', code: 'USD', label: 'USD' },
-                { symbol: '₹', code: 'INR', label: 'INR' },
-                { symbol: '€', code: 'EUR', label: 'EUR' },
-              ].map((option) => (
-                <button
-                  key={option.code}
-                  type="button"
-                  onClick={() => setSelectedCurrency(option.code)}
-                  className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 border ${
-                    selectedCurrency === option.code
-                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400'
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {option.label} {option.symbol}
-                </button>
-              ))}
-            </div>
+
             <button
               onClick={() => navigate('/settlements')}
               className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-semibold transition-all duration-200 shadow-sm"

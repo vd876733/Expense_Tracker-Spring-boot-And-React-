@@ -185,7 +185,7 @@ const SettlementPage = () => {
     const payeeName = encodeURIComponent(selectedDebt.creditor);
     // Stubbing UPI ID for now, since we don't have it in the DB
     const payeeId = encodeURIComponent(selectedDebt.creditorEmail ? selectedDebt.creditorEmail.replace('@', '') + '@upi' : 'user@upi');
-    return `upi://pay?pa=${payeeId}&pn=${payeeName}&am=${amount}&cu=USD`;
+    return `upi://pay?pa=${payeeId}&pn=${payeeName}&am=${amount}&cu=INR`;
   }, [selectedDebt]);
 
   const handleConfirmPayment = async () => {
@@ -354,7 +354,7 @@ const SettlementPage = () => {
                     />
                     <input
                       type="number"
-                      placeholder="Amount ($)"
+                      placeholder="Amount (₹)"
                       value={newExpenseAmt}
                       onChange={(e) => setNewExpenseAmt(e.target.value)}
                       className="w-24 shrink-0 bg-transparent px-3 py-2 focus:outline-none dark:text-white border-l border-gray-200 dark:border-slate-700 text-sm"

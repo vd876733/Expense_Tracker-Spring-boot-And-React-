@@ -45,7 +45,7 @@ const getAmountAtRevision = (entry) => {
     return 'N/A';
   }
 
-  return `$${Number(amount).toFixed(2)}`;
+  return `₹${Number(amount).toFixed(2)}`;
 };
 
 const getRevisionType = (entry) => {

@@ -14,7 +14,7 @@ const SmartInsights = ({
   onSetBudgetClick,
   onResetBudgets,
 }) => {
-  const formatValue = formatCurrency || ((amount) => `$${amount.toFixed(2)}`);
+  const formatValue = formatCurrency || ((amount) => `₹${amount.toFixed(2)}`);
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();

@@ -86,7 +86,7 @@ const FinancialCharts = ({ transactions }) => {
                   <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
+              <Tooltip formatter={(value) => [`₹${value.toFixed(2)}`, 'Amount']} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -99,7 +99,7 @@ const FinancialCharts = ({ transactions }) => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
+              <Tooltip formatter={(value) => [`₹${value.toFixed(2)}`, 'Amount']} />
               <Legend />
               <Bar dataKey="amount">
                 {barData.map((entry, index) => (

@@ -53,7 +53,7 @@ const ExpenseChart = ({ transactions = [], formatCurrency }) => {
   }
 
   const totalAmount = chartData.reduce((sum, item) => sum + item.value, 0);
-  const formattedTotal = formatCurrency ? formatCurrency(totalAmount) : `$${totalAmount.toFixed(2)}`;
+  const formattedTotal = formatCurrency ? formatCurrency(totalAmount) : `₹${totalAmount.toFixed(2)}`;
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -61,7 +61,7 @@ const ExpenseChart = ({ transactions = [], formatCurrency }) => {
         <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-700 text-sm">
           <p className="font-semibold mb-1">{payload[0].name || payload[0].payload.name}</p>
           <p className="text-blue-400 font-bold">
-            {formatCurrency ? formatCurrency(payload[0].value) : `$${payload[0].value.toFixed(2)}`}
+            {formatCurrency ? formatCurrency(payload[0].value) : `₹${payload[0].value.toFixed(2)}`}
           </p>
         </div>
       );
@@ -111,7 +111,7 @@ const ExpenseChart = ({ transactions = [], formatCurrency }) => {
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[90px]" title={item.name}>{item.name}</span>
               </div>
               <span className="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap pl-2">
-                {formatCurrency ? formatCurrency(item.value) : `$${item.value.toFixed(2)}`}
+                {formatCurrency ? formatCurrency(item.value) : `₹${item.value.toFixed(2)}`}
               </span>
             </div>
           ))}
@@ -170,7 +170,7 @@ const ExpenseChart = ({ transactions = [], formatCurrency }) => {
                     </span>
                   </div>
                   <div className="text-right text-sm font-bold text-slate-900 dark:text-white mt-1">
-                    {formatCurrency ? formatCurrency(item.value) : `$${item.value.toFixed(2)}`}
+                    {formatCurrency ? formatCurrency(item.value) : `₹${item.value.toFixed(2)}`}
                   </div>
                 </div>
               );

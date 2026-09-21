@@ -44,7 +44,7 @@ const AddTransactionModal = ({
     if (Number.isFinite(amountValue) && amountValue > availableBalance) {
       const formattedBalance = formatCurrency
         ? formatCurrency(availableBalance)
-        : `$${availableBalance.toFixed(2)}`;
+        : `₹${availableBalance.toFixed(2)}`;
       setErrorMessage(`Insufficient funds! Your current balance is ${formattedBalance}.`);
       setShakeAmount(true);
       setTimeout(() => setShakeAmount(false), 300);
