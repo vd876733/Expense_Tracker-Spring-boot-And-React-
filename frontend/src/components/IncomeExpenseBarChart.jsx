@@ -40,7 +40,7 @@ const IncomeExpenseBarChart = ({ data = [] }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip formatter={(value) => [`₹${Number(value).toFixed(2)}`, 'Amount']} />
+            <Tooltip formatter={(value) => [`${localStorage.getItem('selectedCurrency') === 'USD' ? '$' : '₹'}${Number(value).toFixed(2)}`, 'Amount']} />
             <Legend />
             <Bar dataKey="income" fill="#10b981" name="Income" radius={[6, 6, 0, 0]} />
             <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[6, 6, 0, 0]} />

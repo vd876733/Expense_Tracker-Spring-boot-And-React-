@@ -102,6 +102,38 @@ const Dashboard = ({ onLogout, userId }) => {
   const [isMonthlyTotalsLoading, setIsMonthlyTotalsLoading] = useState(false);
   const [dailySpendingChartData, setDailySpendingChartData] = useState([]);
   const [isDailySpendingLoading, setIsDailySpendingLoading] = useState(false);
+  const notificationsStorageKey = 'systemNotifications';
+  const getInitialNotifications = () => {
+    const stored = localStorage.getItem(notificationsStorageKey);
+    return stored ? JSON.parse(stored) : [];
+  };
+  const [notifications, setNotifications] = useState(getInitialNotifications);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const addNotification = useCallback(({ title, description, category, type, timestamp }) => {
+    setNotifications((prev) => {
+      const newNotification = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+        title,
+        description,
+        category,
+        type,
+        timestamp: timestamp || new Date().toISOString(),
+        read: false,
+      };
+      const updated = [newNotification, ...prev];
+      localStorage.setItem(notificationsStorageKey, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const markAllAsRead = () => {
+    const updated = notifications.map(n => ({ ...n, read: true }));
+    setNotifications(updated);
+    localStorage.setItem(notificationsStorageKey, JSON.stringify(updated));
+  };
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   const incomeStorageKey = 'userIncome';
   const getInitialIncome = () => {
     const stored = localStorage.getItem(incomeStorageKey);
@@ -446,6 +478,20 @@ const Dashboard = ({ onLogout, userId }) => {
       user = null;
     }
 
+    const token = localStorage.getItem('token');
+    const lastSessionToken = localStorage.getItem('lastSessionToken');
+    
+    if (token && token !== lastSessionToken) {
+      addNotification({
+        title: 'Successful Login',
+        description: `Logged in as ${user?.name || 'Varad Deshmukh'}`,
+        category: 'Security / Account',
+        timestamp: new Date().toLocaleString(),
+        type: 'info'
+      });
+      localStorage.setItem('lastSessionToken', token);
+    }
+
     setTransactions([]);
     setTotalSpent(0);
     setMonthlyCategoryTotals([]);
@@ -458,6 +504,7 @@ const Dashboard = ({ onLogout, userId }) => {
     fetchDailySpendingChartData,
     globalEndDate,
     globalStartDate,
+    addNotification,
   ]);
 
   // Handle filter changes
@@ -551,7 +598,17 @@ const Dashboard = ({ onLogout, userId }) => {
       
       // Close modal and show success toast
       setIsModalOpen(false);
-      toast.success(`✓ Transaction added: ${formatCurrency(parseFloat(formDataToSubmit.amount))}`);
+      const formattedAmount = formatCurrency(parseFloat(formDataToSubmit.amount));
+      toast.success(`✓ Transaction added: ${formattedAmount}`);
+      
+      addNotification({
+        title: 'New Transaction Added',
+        description: `${transactionData.type === 'expense' ? 'Spent' : 'Received'} ${formattedAmount} on "${transactionData.description}"`,
+        category: transactionData.category,
+        timestamp: new Date().toLocaleString(),
+        type: 'success'
+      });
+
       setError(null);
     } catch (err) {
       toast.error('Failed to add transaction');
@@ -561,10 +618,22 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const handleDelete = async (id) => {
     try {
+      const transactionToDelete = transactions.find(t => t.id === id);
+      
       await deleteTransaction(id);
 
       await fetchTransactions(globalStartDate, globalEndDate);
       toast.success('✓ Transaction deleted');
+      
+      if (transactionToDelete) {
+        addNotification({
+          title: 'Transaction Deleted',
+          description: `Removed "${transactionToDelete.description}"`,
+          category: transactionToDelete.category || 'System',
+          timestamp: new Date().toLocaleString(),
+          type: 'info'
+        });
+      }
 
       setError(null);
     } catch (err) {
@@ -936,9 +1005,69 @@ const Dashboard = ({ onLogout, userId }) => {
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-              <Bell size={20} />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="p-2 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotificationOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80">
+                    <h3 className="font-bold text-slate-900 dark:text-white">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                        No notifications yet
+                      </div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif.id} 
+                          className={`p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${!notif.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="text-2xl mt-1 leading-none">{getCategoryEmoji(notif.category)}</div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start gap-2">
+                                <p className={`font-semibold text-sm leading-tight ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                                  {notif.title}
+                                </p>
+                                {!notif.read && (
+                                  <span className="h-2.5 w-2.5 bg-indigo-500 rounded-full mt-0.5 flex-shrink-0 shadow-sm shadow-indigo-500/50"></span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                                {notif.description}
+                              </p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-medium uppercase tracking-wider">
+                                {notif.timestamp}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <ThemeToggle />
             {googleUser ? (
               <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">

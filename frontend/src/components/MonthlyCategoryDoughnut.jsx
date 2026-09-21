@@ -65,7 +65,7 @@ const MonthlyCategoryDoughnut = ({ data = [] }) => {
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value) => [`₹${Number(value).toFixed(2)}`, 'Total']} 
+              formatter={(value) => [`${localStorage.getItem('selectedCurrency') === 'USD' ? '$' : '₹'}${Number(value).toFixed(2)}`, 'Total']} 
               contentStyle={{
                 backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
                 borderColor: isDarkMode ? '#334155' : '#e2e8f0',
