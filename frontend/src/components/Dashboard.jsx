@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
-import { History, Sparkles, HandCoins, TrendingUp } from 'lucide-react';
+import { History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -893,49 +893,106 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2 dark:text-white">💰 Finance Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-300">Manage and track your personal finances</p>
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+      {/* Fixed Sidebar */}
+      <div className="bg-slate-900 w-64 text-slate-300 min-h-screen p-6 flex flex-col justify-between shrink-0">
+        <div>
+          {/* Branding Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-indigo-500 p-2 rounded-lg">
+              <TrendingUp className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight">FinanceTracker</h1>
+              <p className="text-xs text-indigo-300">Track • Save • Grow</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/settlements')}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
-              title="Group Settlements"
-            >
-              <HandCoins size={18} />
-              <span>Settlements</span>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-2 mt-4">
+            <button className="flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl shadow-md transition-all font-semibold w-full">
+              <LayoutDashboard size={20} />
+              <span>Dashboard</span>
             </button>
-            <button
-              onClick={() => navigate('/insights')}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md"
-              title="View Financial Insights"
-            >
-              <TrendingUp size={18} />
-              <span>Insights</span>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <ArrowRightLeft size={20} />
+              <span>Transactions</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <PieChart size={20} />
+              <span>Analytics</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <Wallet size={20} />
+              <span>Budgets</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <Target size={20} />
+              <span>Goals</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <FileText size={20} />
+              <span>Reports</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
+              <Settings size={20} />
+              <span>Settings</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Promo Widget */}
+        <div className="mt-8 bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl border border-slate-700/50 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <TrendingUp size={64} />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-white font-bold mb-1">Pro Tip</h3>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Better Money Habits,<br />Brighter Future.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Body */}
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-7xl mx-auto">
+        {/* Top Search & Profile Row */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <input 
+              type="text" 
+              placeholder="Search transactions, categories, or anything..." 
+              className="bg-slate-100 dark:bg-slate-800 rounded-full pl-10 pr-4 py-2 text-sm w-96 border-none focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700 dark:text-slate-200"
+            />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400">
+              <Bell size={20} />
             </button>
             <ThemeToggle />
             {googleUser ? (
-              <div className="flex items-center gap-3 rounded-full bg-white/70 px-3 py-1 shadow-sm">
+              <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
                 {googleUser.picture ? (
                   <img
                     src={googleUser.picture}
                     alt={googleUser.name}
-                    className="h-9 w-9 rounded-full border border-white object-cover"
+                    className="h-8 w-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-9 w-9 rounded-full bg-slate-200" />
+                  <div className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-xs">
+                    {googleUser.name ? googleUser.name.charAt(0) : 'U'}
+                  </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-slate-800">{googleUser.name}</span>
+                <div className="flex flex-col pr-2">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">{googleUser.name}</span>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-left text-xs font-semibold text-slate-600 hover:text-slate-900"
+                    className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight"
                   >
                     Sign Out
                   </button>
@@ -947,16 +1004,128 @@ const Dashboard = ({ onLogout, userId }) => {
           </div>
         </div>
 
-        <SmartInsights
-          transactions={transactions}
-          budgetAnalyses={budgetAnalyses}
-          budgets={budgets}
-          spendingChange={spendingChange}
-          topCategory={topCategory}
-          formatCurrency={formatCurrency}
-          onSetBudgetClick={() => setIsBudgetModalOpen(true)}
-          onResetBudgets={handleResetBudgets}
-        />
+        {/* Greeting & Action Buttons Row */}
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              ☀️ Good Morning, {googleUser ? googleUser.name.split(' ')[0] : 'Varad'}!
+            </h1>
+            <p className="text-gray-600 dark:text-slate-400 mt-1 font-medium">
+              Here's your financial overview for this month.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/settlements')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-semibold transition-all duration-200 shadow-sm"
+              title="Group Settlements"
+            >
+              <HandCoins size={18} className="text-indigo-500" />
+              <span>Settlements</span>
+            </button>
+            <button
+              onClick={() => navigate('/insights')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm"
+              title="View Financial Insights"
+            >
+              <TrendingUp size={18} />
+              <span>Insights</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SmartInsights Replacement: 5-Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          {/* Top Spending Category */}
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl flex flex-col justify-between border border-blue-100 dark:border-blue-800">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Top Spending</span>
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-800 rounded-lg shadow-sm">
+                <Zap size={16} className="text-blue-600 dark:text-blue-200" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-blue-900 dark:text-blue-100 truncate">
+                {topCategory ? topCategory.category : 'N/A'}
+              </div>
+              <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                {topCategory ? formatCurrency(topCategory.total) : formatCurrency(0)}
+              </div>
+            </div>
+          </div>
+
+          {/* Spending Alert */}
+          <div className="bg-pink-50 dark:bg-pink-900/30 p-4 rounded-2xl flex flex-col justify-between border border-pink-100 dark:border-pink-800">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-semibold text-pink-700 dark:text-pink-300">Spending Alert</span>
+              <div className="p-1.5 bg-pink-100 dark:bg-pink-800 rounded-lg shadow-sm">
+                <AlertTriangle size={16} className="text-pink-600 dark:text-pink-200" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-pink-900 dark:text-pink-100">
+                {spendingChange.percentageChange > 0 ? '+' : ''}{spendingChange.percentageChange.toFixed(1)}%
+              </div>
+              <div className="text-sm text-pink-600 dark:text-pink-400 mt-1">
+                vs last month
+              </div>
+            </div>
+          </div>
+
+          {/* Savings Trend */}
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl flex flex-col justify-between border border-emerald-100 dark:border-emerald-800">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Savings Trend</span>
+              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-800 rounded-lg shadow-sm">
+                <TrendingUp size={16} className="text-emerald-600 dark:text-emerald-200" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-emerald-900 dark:text-emerald-100">
+                {formatCurrency(income - totalSpent)}
+              </div>
+              <div className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
+                Net savings
+              </div>
+            </div>
+          </div>
+
+          {/* Budget Progress */}
+          <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-2xl flex flex-col justify-between border border-purple-100 dark:border-purple-800">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">Budget Progress</span>
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-800 rounded-lg shadow-sm">
+                <Target size={16} className="text-purple-600 dark:text-purple-200" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-purple-900 dark:text-purple-100">
+                {budgets.length > 0 ? `${((totalSpent / (budgets.reduce((sum, b) => sum + Number(b.monthlyLimit || 0), 0) || 1)) * 100).toFixed(1)}%` : 'N/A'}
+              </div>
+              <div className="text-sm text-purple-600 dark:text-purple-400 mt-1 truncate">
+                {budgets.length > 0 ? 'of total limit' : 'No budgets set'}
+              </div>
+            </div>
+          </div>
+
+          {/* Projected Total */}
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl flex flex-col justify-between border border-slate-200 dark:border-slate-700">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Projected Total</span>
+              <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg shadow-sm">
+                <Calendar size={16} className="text-slate-600 dark:text-slate-300" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {formatCurrency(new Date().getDate() > 0 ? (totalSpent / new Date().getDate()) * new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() : totalSpent)}
+              </div>
+              <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Estimated this month
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Error Message */}
         {error && (
@@ -968,166 +1137,175 @@ const Dashboard = ({ onLogout, userId }) => {
         <Stack spacing={4} sx={{ mb: 4 }}>
           {/* Summary Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card
-              title="Total Income"
-              className={isLowBalance ? 'border-2 border-red-300' : ''}
-              value={(
-                <div className="flex items-center gap-3">
-                  {isEditingIncome ? (
-                    <input
-                      type="number"
-                      value={income}
-                      onChange={handleIncomeChange}
-                      className="h-9 w-32 rounded-md border border-white/60 bg-white/90 px-2 text-sm text-slate-900"
-                      min="0"
-                    />
-                  ) : (
-                    <span>{formatCurrency(income)}</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleIncomeEdit}
-                    className="rounded-full border border-white/60 px-2 py-0.5 text-xs font-semibold text-white/90 hover:bg-white/20"
-                  >
-                    {isEditingIncome ? 'Save' : 'Edit'}
-                  </button>
+            {/* Total Income Card */}
+            <div className="bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-slate-300 font-semibold text-sm tracking-wide uppercase">Total Income</span>
+                <button
+                  type="button"
+                  onClick={toggleIncomeEdit}
+                  className="bg-white/10 hover:bg-white/20 transition-colors text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10"
+                >
+                  {isEditingIncome ? 'Save' : 'Edit Income'}
+                </button>
+              </div>
+              <div>
+                {isEditingIncome ? (
+                  <input
+                    type="number"
+                    value={income}
+                    onChange={handleIncomeChange}
+                    className="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-3 py-2 text-xl font-bold text-white focus:outline-none focus:border-blue-400 mb-2"
+                    min="0"
+                  />
+                ) : (
+                  <h2 className="text-3xl font-extrabold tracking-tight mb-2">
+                    {formatCurrency(income)}
+                  </h2>
+                )}
+                <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-md border border-emerald-500/30">
+                  <TrendingUp size={14} />
+                  <span>+12% from last month</span>
                 </div>
-              )}
-              warning={isLowBalance ? 'Warning: Low Balance' : ''}
-              icon="💳"
-              gradient="from-green-600 to-emerald-500"
-            />
-            <Card
-              title="Total Spent"
-              value={formatCurrency(totalSpent)}
-              subtitle={`Based on ${transactions.length} transactions`}
-              icon={<HandCoins />}
-              gradient="from-orange-500 to-red-500"
-            />
-            <Card
-              title="Net Balance"
-              value={(
-                <span className={netBalance < 0 ? 'text-red-200' : 'text-emerald-100'}>
+              </div>
+            </div>
+
+            {/* Total Spent Card */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Total Spent</span>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 p-2.5 rounded-full">
+                  <HandCoins size={20} />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 mb-1 tracking-tight">
+                  {formatCurrency(totalSpent)}
+                </h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Based on {transactions.length} transactions
+                </p>
+              </div>
+            </div>
+
+            {/* Net Balance Card */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Net Balance</span>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 p-2.5 rounded-full">
+                  <Wallet size={20} />
+                </div>
+              </div>
+              <div>
+                <h2 className={`text-3xl font-extrabold tracking-tight mb-1 ${netBalance < 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>
                   {formatCurrency(netBalance)}
-                </span>
-              )}
-              icon="📈"
-              gradient="from-blue-600 to-indigo-600"
-            />
-            <Card
-              title="Total Transactions"
-              value={transactions.length}
-              icon="📊"
-              gradient="from-purple-600 to-pink-600"
-            />
+                </h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  {netBalance < 0 ? 'Warning: Low Balance' : 'Healthy standing'}
+                </p>
+              </div>
+            </div>
+
+            {/* Total Transactions Card */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Transactions</span>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400 p-2.5 rounded-full">
+                  <PieChart size={20} />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 mb-1 tracking-tight">
+                  {transactions.length}
+                </h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  +3 new this month
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Date Range</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-300">Showing {globalLabel.toLowerCase()}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="inline-flex items-center gap-2">
+          {/* Controls Panel */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            
+            {/* Title & Currency */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-white">Date Range</h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Showing {globalLabel.toLowerCase()}</p>
+              </div>
+              <div className="h-10 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+              <div className="flex items-center gap-2">
                 {[
                   { symbol: '$', code: 'USD', label: 'USD' },
                   { symbol: '₹', code: 'INR', label: 'INR' },
                   { symbol: '€', code: 'EUR', label: 'EUR' },
-                ].map((option, index) => (
+                ].map((option) => (
                   <button
                     key={option.code}
                     type="button"
                     onClick={() => setSelectedCurrency(option.code)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 border ${
                       selectedCurrency === option.code
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-600 border border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
                     }`}
                   >
                     {option.label} {option.symbol}
                   </button>
                 ))}
               </div>
-              <div className="inline-flex rounded-full border border-gray-300 overflow-hidden dark:border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setDateFilter('7D')}
-                  className={`px-4 py-2 text-sm font-semibold transition ${
-                    dateFilter === '7D'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
-                >
-                  7 Days
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateFilter('30D')}
-                  className={`px-4 py-2 text-sm font-semibold border-l border-gray-300 transition ${
-                    dateFilter === '30D'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
-                >
-                  30 Days
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateFilter('90D')}
-                  className={`px-4 py-2 text-sm font-semibold border-l border-gray-300 transition ${
-                    dateFilter === '90D'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
-                >
-                  90 Days
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateFilter('1Y')}
-                  className={`px-4 py-2 text-sm font-semibold border-l border-gray-300 transition ${
-                    dateFilter === '1Y'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
-                >
-                  1 Year
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateFilter('ALL')}
-                  className={`px-4 py-2 text-sm font-semibold border-l border-gray-300 transition ${
-                    dateFilter === 'ALL'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
-                >
-                  All Time
-                </button>
+            </div>
+
+            {/* Presets & Custom Date */}
+            <div className="flex flex-wrap xl:flex-nowrap items-center gap-4">
+              <div className="inline-flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                {[
+                  { id: '7D', label: '7 Days' },
+                  { id: '30D', label: '30 Days' },
+                  { id: '90D', label: '90 Days' },
+                  { id: '1Y', label: '1 Year' },
+                  { id: 'ALL', label: 'All Time' },
+                ].map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setDateFilter(preset.id)}
+                    className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                      dateFilter === preset.id
+                        ? 'bg-slate-900 text-white shadow-md dark:bg-blue-600'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
-              <div className="flex flex-wrap items-end gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">From</label>
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(event) => setCustomStartDate(event.target.value)}
-                    className="h-10 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">To</label>
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(event) => setCustomEndDate(event.target.value)}
-                    className="h-10 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
-                  />
-                </div>
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(event) => setCustomStartDate(event.target.value)}
+                  className="h-9 rounded-lg border-none bg-slate-50 px-2 text-sm font-medium text-slate-700 focus:ring-0 outline-none dark:bg-slate-900 dark:text-slate-200"
+                />
+                <span className="text-slate-400 font-bold px-1">-</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(event) => setCustomEndDate(event.target.value)}
+                  className="h-9 rounded-lg border-none bg-slate-50 px-2 text-sm font-medium text-slate-700 focus:ring-0 outline-none dark:bg-slate-900 dark:text-slate-200"
+                />
                 <button
                   type="button"
                   onClick={handleCustomDateApply}
-                  className="h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                  className="h-9 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 transition shadow-sm ml-1"
                 >
                   Apply
                 </button>
@@ -1590,6 +1768,7 @@ const Dashboard = ({ onLogout, userId }) => {
             Budgets Reset
           </Alert>
         </Snackbar>
+        </div>
       </div>
     </div>
   );
