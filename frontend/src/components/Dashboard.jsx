@@ -1592,8 +1592,7 @@ const Dashboard = ({ onLogout, userId }) => {
         {/* ANALYTICS TAB */}
         {activeTab === 'analytics' && (
           <div className="space-y-8 mb-8">
-
-          {/* Controls Panel */}
+{/* Controls Panel */}
           <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             
             {/* Title */}
@@ -1655,16 +1654,16 @@ const Dashboard = ({ onLogout, userId }) => {
           
 
         
-            <Stack spacing={4} sx={{ mb: 4 }}>
-              {isMonthlyTotalsLoading ? (
-            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
-              <p className="text-gray-500 dark:text-gray-300">Loading monthly category totals...</p>
-            </div>
-          ) : (
-            <MonthlyCategoryDoughnut data={monthlyCategoryTotals} />
-          )}
+            
 
-          {isDailySpendingLoading ? (
+            <Stack spacing={4} sx={{ mb: 4 }}>
+              {/* Expense Chart Section (Category Tools & Spending Breakdown) */}
+              <div className="w-full">
+                <ExpenseChart transactions={transactions} formatCurrency={formatCurrency} />
+              </div>
+
+              {/* Daily Spending */}
+              {isDailySpendingLoading ? (
             <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
               <p className="text-gray-500 dark:text-gray-300">Loading daily spending...</p>
             </div>
@@ -1681,12 +1680,16 @@ const Dashboard = ({ onLogout, userId }) => {
               />
             </div>
           )}
-            </Stack>
 
-            {/* Expense Chart Section */}
-        <div className="mb-8">
-          <ExpenseChart transactions={transactions} formatCurrency={formatCurrency} />
-        </div>
+              {/* Monthly Category Totals */}
+              {isMonthlyTotalsLoading ? (
+            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
+              <p className="text-gray-500 dark:text-gray-300">Loading monthly category totals...</p>
+            </div>
+          ) : (
+            <MonthlyCategoryDoughnut data={monthlyCategoryTotals} />
+          )}
+            </Stack>
 
             <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }} className="dark:bg-slate-800 dark:text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1722,10 +1725,10 @@ const Dashboard = ({ onLogout, userId }) => {
             </Typography>
           )}
         </Paper>
-          </div>
-        )}
 
-        {/* BUDGETS TAB */}
+            </div>
+          )}
+                    {/* BUDGETS TAB */}
         {activeTab === 'budgets' && (
           <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Budgets</h2>
