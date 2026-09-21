@@ -209,41 +209,41 @@ const SettlementPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 dark:bg-slate-900">
+    <div className="bg-slate-100 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 p-6 rounded-2xl transition-colors min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Group Settlements</h1>
-            <p className="text-gray-600 dark:text-gray-300">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Group Settlements</h1>
+            <p className="text-slate-600 dark:text-slate-400">
               Minimize who owes whom with a smart settle-up plan.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setIsCreateGroupModalOpen(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl shadow-md transition-colors"
           >
             Create New Group
           </button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-          <aside className="card bg-white dark:bg-slate-800 dark:text-white">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Groups</h2>
+          <aside className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Active Groups</h2>
             <ul className="space-y-3">
               {isLoading ? (
-                <li className="text-sm text-gray-500">Loading groups...</li>
+                <li className="text-sm text-slate-400">Loading groups...</li>
               ) : groups.length === 0 ? (
-                <li className="text-sm text-gray-500">No active groups.</li>
+                <li className="text-sm text-slate-400">No active groups.</li>
               ) : (
                 groups.map((group) => (
                   <li
                     key={group.id}
                     onClick={() => setActiveGroup(group)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                    className={`cursor-pointer transition-colors ${
                       activeGroup?.id === group.id
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-200'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300 dark:border-slate-700 dark:text-gray-300 dark:hover:border-slate-600'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 rounded-xl p-3 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                        : 'bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60 rounded-xl p-3 font-semibold hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/30'
                     }`}
                   >
                     {group.groupName}
@@ -254,17 +254,17 @@ const SettlementPage = () => {
           </aside>
 
           <div className="space-y-6">
-            <section className="card bg-white dark:bg-slate-800 dark:text-white flex flex-col h-[600px]">
+            <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6 shadow-sm flex flex-col h-[600px]">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4 shrink-0">
                 <div className="flex gap-4 border-b border-gray-200 dark:border-slate-700 w-full pb-2">
                   <button
-                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'chat' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'chat' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                     onClick={() => setActiveTab('chat')}
                   >
                     Expenses Chat
                   </button>
                   <button
-                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'settlements' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                    className={`pb-2 font-semibold text-sm transition-colors ${activeTab === 'settlements' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                     onClick={() => setActiveTab('settlements')}
                   >
                     Settlements
@@ -273,11 +273,11 @@ const SettlementPage = () => {
               </div>
               
               {!activeGroup ? (
-                <p className="text-gray-500 flex-1">Please select a group from the sidebar to view details.</p>
+                <p className="text-slate-400 flex-1">Please select a group from the sidebar to view details.</p>
               ) : activeTab === 'settlements' ? (
                 <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                   {debts.length === 0 ? (
-                    <p className="text-gray-500">No pending debts in this group! Everyone is settled up.</p>
+                    <p className="text-slate-400">No pending debts in this group! Everyone is settled up.</p>
                   ) : (
                     debts.map((debt, idx) => {
                       const debtId = `${debt.debtor}-${debt.creditor}`;
@@ -330,13 +330,13 @@ const SettlementPage = () => {
                       <p className="text-sm text-gray-500 text-center mt-auto mb-auto">No expenses yet. Start by adding one below!</p>
                     ) : (
                       [...groupExpenses].reverse().map((expense, idx) => (
-                        <div key={idx} className="flex flex-col bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-slate-700 max-w-[80%] self-start w-full sm:w-auto min-w-[200px] shrink-0">
+                        <div key={idx} className="flex flex-col bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-4 shadow-sm max-w-[80%] self-start w-full sm:w-auto min-w-[200px] shrink-0">
                            <div className="flex items-baseline justify-between gap-4 mb-1 border-b border-gray-100 dark:border-slate-700/50 pb-1">
-                             <span className="font-semibold text-sm text-blue-700 dark:text-blue-400">{expense.payerName}</span>
-                             <span className="text-xs text-gray-400">{new Date(expense.date).toLocaleDateString()}</span>
+                             <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">{expense.payerName}</span>
+                             <span className="text-slate-400 text-xs">{new Date(expense.date).toLocaleDateString()}</span>
                            </div>
-                           <p className="text-gray-800 dark:text-gray-200 mt-1">{expense.description}</p>
-                           <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">${expense.totalAmount?.toFixed(2)}</p>
+                           <p className="text-slate-800 dark:text-slate-200 font-medium mt-1">{expense.description}</p>
+                           <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg mt-1">${expense.totalAmount?.toFixed(2)}</p>
                         </div>
                       ))
                     )}

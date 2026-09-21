@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
-import { History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar } from 'lucide-react';
+import { History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -35,7 +35,7 @@ import SmartInsights from './SmartInsights';
 import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
-
+import SettlementPage from './SettlementPage';
 const Dashboard = ({ onLogout, userId }) => {
   const navigate = useNavigate();
   const getUsernameFromToken = useCallback((token) => {
@@ -894,7 +894,7 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Fixed Sidebar */}
       <div className="bg-slate-900 w-64 text-slate-300 min-h-screen p-6 flex flex-col justify-between shrink-0">
         <div>
@@ -915,6 +915,7 @@ const Dashboard = ({ onLogout, userId }) => {
               { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
               { id: 'transactions', label: 'Transactions', icon: <ArrowRightLeft size={20} /> },
               { id: 'analytics', label: 'Analytics', icon: <PieChart size={20} /> },
+              { id: 'settlements', label: 'Settlements', icon: <Users size={20} /> },
               { id: 'budgets', label: 'Budgets', icon: <Wallet size={20} /> },
               { id: 'goals', label: 'Goals', icon: <Target size={20} /> },
               { id: 'reports', label: 'Reports', icon: <FileText size={20} /> },
@@ -960,17 +961,17 @@ const Dashboard = ({ onLogout, userId }) => {
             <input 
               type="text" 
               placeholder="Search transactions, categories, or anything..." 
-              className="rounded-full pl-10 pr-4 py-2 text-sm w-96 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+              className="rounded-full pl-10 pr-4 py-2 text-sm w-96 outline-none transition-colors bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
             />
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400">
+            <button className="p-2 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               <Bell size={20} />
             </button>
             <ThemeToggle />
             {googleUser ? (
-              <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
                 {googleUser.picture ? (
                   <img
                     src={googleUser.picture}
@@ -1728,7 +1729,13 @@ const Dashboard = ({ onLogout, userId }) => {
 
             </div>
           )}
-                    {/* BUDGETS TAB */}
+
+        {/* SETTLEMENTS TAB */}
+        {activeTab === 'settlements' && (
+          <SettlementPage />
+        )}
+
+        {/* BUDGETS TAB */}
         {activeTab === 'budgets' && (
           <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Budgets</h2>

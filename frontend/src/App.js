@@ -9,7 +9,6 @@ import './index.css';
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
-const SettlementPage = lazy(() => import('./components/SettlementPage'));
 const InsightsPage = lazy(() => import('./components/InsightsPage'));
 
 function App() {
@@ -39,14 +38,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/settlements"
-                element={
-                  <ProtectedRoute>
-                    <SettlementPage />
-                  </ProtectedRoute>
-                }
-              />
+
               <Route
                 path="/insights"
                 element={
