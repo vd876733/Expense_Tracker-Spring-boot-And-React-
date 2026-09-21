@@ -32,11 +32,7 @@ function App() {
               <Route path="/register" element={<Register setToken={setToken} setUserId={setUserId} />} />
               <Route
                 path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard onLogout={handleLogout} userId={userId} />
-                  </ProtectedRoute>
-                }
+                element={<Dashboard onLogout={handleLogout} userId={userId} />}
               />
 
               <Route
@@ -47,7 +43,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
           <ToastContainer

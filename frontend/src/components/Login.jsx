@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { toast } from 'react-toastify';
+import { Wallet } from 'lucide-react';
 
-const Login = ({ setToken, setUserId }) => {
+const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,6 @@ const Login = ({ setToken, setUserId }) => {
 
       const payload = apiResponse.data || {};
       
-      // Support both "token" and "accessToken" response keys
       const token = payload.token || payload.accessToken;
       const user = payload.user;
 
@@ -36,7 +36,6 @@ const Login = ({ setToken, setUserId }) => {
         return;
       }
 
-      // 1. Store user and profile payload in LocalStorage
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('userProfile', JSON.stringify(user));
@@ -59,7 +58,6 @@ const Login = ({ setToken, setUserId }) => {
         );
       }
 
-      // 2. Persist Auth Token and User ID
       localStorage.setItem('token', token);
       
       const resolvedUserId = user?.id || payload.userId;
@@ -72,11 +70,13 @@ const Login = ({ setToken, setUserId }) => {
 
       toast.success('Signed in securely with Google.');
 
-      // 3. Force redirection to Dashboard
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 100);
-
+      if (isModal && onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
+      }
     } catch (error) {
       console.error('Google login error:', error);
       toast.error(
@@ -142,7 +142,11 @@ const Login = ({ setToken, setUserId }) => {
       if (setToken) setToken(jwtToken);
 
       toast.success('Login successful!');
-      navigate('/dashboard', { replace: true });
+      if (isModal && onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed. Please try again.');
@@ -151,14 +155,33 @@ const Login = ({ setToken, setUserId }) => {
     }
   };
 
+  const containerClass = isModal
+    ? "relative w-full max-w-md mx-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/80 rounded-3xl p-8 shadow-2xl transition-all"
+    : "min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8";
+
+  const wrapperClass = isModal ? "space-y-6" : "max-w-md w-full space-y-8";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className={containerClass}>
+      {isModal && onClose && (
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+      <div className={wrapperClass}>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-600 text-white mb-4 shadow-lg shadow-indigo-600/30">
+            <Wallet className="h-7 w-7" />
+          </div>
+          <h2 className="text-center text-3xl font-extrabold text-slate-900 dark:text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
             Enter your credentials to access your expense tracker
           </p>
         </div>
@@ -210,7 +233,7 @@ const Login = ({ setToken, setUserId }) => {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-gray-50 px-2 text-gray-500">OR</span>
+              <span className="bg-white px-2 text-gray-500">OR</span>
             </div>
           </div>
           <div className="w-full flex justify-center">
@@ -219,7 +242,7 @@ const Login = ({ setToken, setUserId }) => {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link to="/register" onClick={onClose} className="font-medium text-indigo-600 hover:text-indigo-500">
                 Sign up here
               </Link>
             </p>

@@ -36,6 +36,35 @@ import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
 import SettlementPage from './SettlementPage';
+import Login from './Login';
+const demoData = {
+  transactions: [
+    { id: 'd1', description: 'Whole Foods Market', amount: 145.20, date: new Date().toISOString(), category: 'Food', type: 'expense' },
+    { id: 'd2', description: 'Uber Ride', amount: 24.50, date: new Date(Date.now() - 86400000).toISOString(), category: 'Transportation', type: 'expense' },
+    { id: 'd3', description: 'Netflix Subscription', amount: 15.99, date: new Date(Date.now() - 172800000).toISOString(), category: 'Entertainment', type: 'expense' },
+    { id: 'd4', description: 'Salary Deposit', amount: 4500.00, date: new Date(Date.now() - 432000000).toISOString(), category: 'Income', type: 'income' }
+  ],
+  monthlyCategoryTotals: [
+    { category: 'Food', total: 145.20 },
+    { category: 'Transportation', total: 24.50 },
+    { category: 'Entertainment', total: 15.99 }
+  ],
+  dailySpendingChartData: [
+    { date: new Date(Date.now() - 172800000).toISOString().split('T')[0], total: 15.99 },
+    { date: new Date(Date.now() - 86400000).toISOString().split('T')[0], total: 24.50 },
+    { date: new Date().toISOString().split('T')[0], total: 145.20 }
+  ],
+  budgets: [
+    { id: 'b1', category: 'Food', limitAmount: 500, amountSpent: 145.20, remainingAmount: 354.80, status: 'ON_TRACK' },
+    { id: 'b2', category: 'Transportation', limitAmount: 150, amountSpent: 24.50, remainingAmount: 125.50, status: 'ON_TRACK' }
+  ],
+  settlements: [
+    { id: 's1', groupName: 'Roommates', amountOwed: 50, owedTo: 'Alex', status: 'PENDING' },
+    { id: 's2', groupName: 'Trip to Hawaii', amountOwed: 250, owedTo: 'Sarah', status: 'SETTLED' }
+  ],
+  income: 4500
+};
+
 const Dashboard = ({ onLogout, userId }) => {
   const navigate = useNavigate();
   const getUsernameFromToken = useCallback((token) => {
@@ -110,6 +139,8 @@ const Dashboard = ({ onLogout, userId }) => {
   const [notifications, setNotifications] = useState(getInitialNotifications);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(!localStorage.getItem('token'));
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const addNotification = useCallback(({ title, description, category, type, timestamp }) => {
     setNotifications((prev) => {
@@ -139,6 +170,7 @@ const Dashboard = ({ onLogout, userId }) => {
   const getInitialIncome = () => {
     const stored = localStorage.getItem(incomeStorageKey);
     const parsed = Number(stored);
+    if (!localStorage.getItem('token') && !Number.isFinite(parsed)) return demoData.income;
     return Number.isFinite(parsed) ? parsed : 0;
   };
   const [income, setIncome] = useState(getInitialIncome);
@@ -297,6 +329,11 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   const fetchTransactions = useCallback(async (startDate, endDate) => {
+    if (isDemoMode) {
+      setTransactions(demoData.transactions);
+      return;
+    }
+
     const email = getStoredUserEmail();
     if (!email) {
       setTransactions([]);
@@ -314,9 +351,14 @@ const Dashboard = ({ onLogout, userId }) => {
       console.error('Error fetching transactions:', err);
       throw err; // Re-throw to be caught by fetchDashboardData
     }
-  }, []);
+  }, [isDemoMode]);
 
   const fetchMonthlyCategoryTotals = useCallback(async () => {
+    if (isDemoMode) {
+      setMonthlyCategoryTotals(demoData.monthlyCategoryTotals);
+      return;
+    }
+
     setIsMonthlyTotalsLoading(true);
     try {
       const email = getStoredUserEmail();
@@ -332,9 +374,14 @@ const Dashboard = ({ onLogout, userId }) => {
     } finally {
       setIsMonthlyTotalsLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   const fetchDailySpendingChartData = useCallback(async (startDate, endDate) => {
+    if (isDemoMode) {
+      setDailySpendingChartData(demoData.dailySpendingChartData);
+      return;
+    }
+
     setIsDailySpendingLoading(true);
     try {
       const email = getStoredUserEmail();
@@ -350,9 +397,15 @@ const Dashboard = ({ onLogout, userId }) => {
     } finally {
       setIsDailySpendingLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   const fetchBudgets = useCallback(async () => {
+    if (isDemoMode) {
+      setBudgets(demoData.budgets);
+      setBudgetAnalyses(demoData.budgets);
+      return;
+    }
+
     const numericUserId = Number(userId);
     const token = localStorage.getItem('token');
 
@@ -372,7 +425,7 @@ const Dashboard = ({ onLogout, userId }) => {
         : [];
     setBudgets(budgetsData);
     setBudgetAnalyses(budgetsData);
-  }, [getUsernameFromToken, userId]);
+  }, [getUsernameFromToken, userId, isDemoMode]);
 
   const fetchDashboardData = useCallback(async (startDate, endDate) => {
     setLoading(true);
@@ -1002,6 +1055,21 @@ const Dashboard = ({ onLogout, userId }) => {
       {/* Main Content Body */}
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto">
+          {/* Demo Mode Banner */}
+          {isDemoMode && (
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl flex items-center justify-between mb-4 shadow-md flex-col sm:flex-row gap-3 text-center sm:text-left sticky top-0 z-20">
+              <div>
+                <p className="font-bold">🎮 You are viewing in Demo Mode. Connect your real account to save data.</p>
+              </div>
+              <button 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors whitespace-nowrap shadow-sm"
+              >
+                Sign In / Register
+              </button>
+            </div>
+          )}
+
         {/* Top Search & Profile Row */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
@@ -1086,9 +1154,17 @@ const Dashboard = ({ onLogout, userId }) => {
               )}
             </div>
             <ThemeToggle />
-            {googleUser ? (
+            {!localStorage.getItem('token') && isDemoMode && (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)} 
+                className="hidden sm:block bg-indigo-600 text-white font-semibold px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-700 transition-colors shadow-md"
+              >
+                Sign In / Register
+              </button>
+            )}
+            {googleUser || isDemoMode ? (
               <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
-                {googleUser.picture ? (
+                {googleUser?.picture ? (
                   <img
                     src={googleUser.picture}
                     alt={googleUser.name}
@@ -1096,18 +1172,39 @@ const Dashboard = ({ onLogout, userId }) => {
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-xs">
-                    {googleUser.name ? googleUser.name.charAt(0) : 'U'}
+                    {googleUser?.name ? googleUser.name.charAt(0) : 'G'}
                   </div>
                 )}
                 <div className="flex flex-col pr-2">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">{googleUser.name}</span>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight"
-                  >
-                    Sign Out
-                  </button>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">
+                    {googleUser?.name || 'Guest User'}
+                  </span>
+                  {!localStorage.getItem('token') ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="text-left text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors leading-tight font-semibold"
+                    >
+                      Sign In / Register
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight"
+                      >
+                        Sign Out
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDemoMode(!isDemoMode)}
+                        className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight mt-1.5"
+                      >
+                        {isDemoMode ? 'Switch to Live Account' : 'Switch to Demo Account'}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
@@ -2002,6 +2099,20 @@ const Dashboard = ({ onLogout, userId }) => {
         </Snackbar>
         </div>
       </div>
+
+      {/* Auth Modal Overlay */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md transition-all duration-300">
+          <Login 
+            isModal={true} 
+            onLoginSuccess={() => {
+              setIsAuthModalOpen(false);
+              setIsDemoMode(false);
+            }}
+            onClose={() => setIsAuthModalOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
