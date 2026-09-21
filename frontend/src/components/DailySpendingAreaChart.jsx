@@ -34,9 +34,9 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
 
   if (!data.length) {
     return (
-      <div className="card bg-white">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-500">No data available.</p>
+      <div className="card bg-white dark:bg-slate-800 dark:border-slate-700/60">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">{title}</h2>
+        <p className="text-slate-500 dark:text-slate-400">No data available.</p>
       </div>
     );
   }
@@ -47,8 +47,8 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
   }));
 
   return (
-    <div className="card bg-white">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
+    <div className="card bg-white dark:bg-slate-800 dark:border-slate-700/60">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{title}</h2>
       <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
@@ -77,6 +77,12 @@ const DailySpendingAreaChart = ({ data = [], title = 'Daily Spending', formatVal
                 'Total',
               ]}
               labelFormatter={formatDateLabel}
+              contentStyle={{
+                backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                borderColor: isDarkMode ? '#334155' : '#e2e8f0',
+                color: isDarkMode ? '#f1f5f9' : '#0f172a',
+              }}
+              itemStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
             />
             <Area
               type="monotone"

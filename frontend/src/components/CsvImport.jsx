@@ -88,7 +88,7 @@ const CsvImport = ({ onImportSuccess }) => {
   };
 
   return (
-    <div className="card bg-white">
+    <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">📁 Bulk Import (CSV)</h2>
         <button

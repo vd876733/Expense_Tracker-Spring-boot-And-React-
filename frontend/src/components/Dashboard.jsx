@@ -960,7 +960,7 @@ const Dashboard = ({ onLogout, userId }) => {
             <input 
               type="text" 
               placeholder="Search transactions, categories, or anything..." 
-              className="bg-slate-100 dark:bg-slate-800 rounded-full pl-10 pr-4 py-2 text-sm w-96 border-none focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700 dark:text-slate-200"
+              className="rounded-full pl-10 pr-4 py-2 text-sm w-96 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
             />
           </div>
           
@@ -1037,82 +1037,82 @@ const Dashboard = ({ onLogout, userId }) => {
         {/* SmartInsights Replacement: 5-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           {/* Top Spending Category */}
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl flex flex-col justify-between border border-blue-100 dark:border-blue-800">
+          <div className="bg-blue-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-blue-100 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Top Spending</span>
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-800 rounded-lg shadow-sm">
-                <Zap size={16} className="text-blue-600 dark:text-blue-200" />
+              <span className="text-sm font-semibold text-blue-700 dark:text-slate-300">Top Spending</span>
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-lg shadow-sm">
+                <Zap size={16} className="text-blue-600 dark:text-blue-300" />
               </div>
             </div>
             <div>
-              <div className="text-xl font-bold text-blue-900 dark:text-blue-100 truncate">
+              <div className="text-xl font-bold text-blue-900 dark:text-slate-100 truncate">
                 {topCategory ? topCategory.category : 'N/A'}
               </div>
-              <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-sm text-blue-600 dark:text-slate-400 mt-1">
                 {topCategory ? formatCurrency(topCategory.total) : formatCurrency(0)}
               </div>
             </div>
           </div>
 
           {/* Spending Alert */}
-          <div className="bg-pink-50 dark:bg-pink-900/30 p-4 rounded-2xl flex flex-col justify-between border border-pink-100 dark:border-pink-800">
+          <div className="bg-pink-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-pink-100 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-pink-700 dark:text-pink-300">Spending Alert</span>
-              <div className="p-1.5 bg-pink-100 dark:bg-pink-800 rounded-lg shadow-sm">
-                <AlertTriangle size={16} className="text-pink-600 dark:text-pink-200" />
+              <span className="text-sm font-semibold text-pink-700 dark:text-slate-300">Spending Alert</span>
+              <div className="p-1.5 bg-pink-100 dark:bg-pink-900/50 rounded-lg shadow-sm">
+                <AlertTriangle size={16} className="text-pink-600 dark:text-pink-300" />
               </div>
             </div>
             <div>
-              <div className="text-xl font-bold text-pink-900 dark:text-pink-100">
+              <div className="text-xl font-bold text-pink-900 dark:text-slate-100">
                 {spendingChange.percentageChange > 0 ? '+' : ''}{spendingChange.percentageChange.toFixed(1)}%
               </div>
-              <div className="text-sm text-pink-600 dark:text-pink-400 mt-1">
+              <div className="text-sm text-pink-600 dark:text-slate-400 mt-1">
                 vs last month
               </div>
             </div>
           </div>
 
           {/* Savings Trend */}
-          <div className="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl flex flex-col justify-between border border-emerald-100 dark:border-emerald-800">
+          <div className="bg-emerald-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-emerald-100 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Savings Trend</span>
-              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-800 rounded-lg shadow-sm">
-                <TrendingUp size={16} className="text-emerald-600 dark:text-emerald-200" />
+              <span className="text-sm font-semibold text-emerald-700 dark:text-slate-300">Savings Trend</span>
+              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg shadow-sm">
+                <TrendingUp size={16} className="text-emerald-600 dark:text-emerald-300" />
               </div>
             </div>
             <div>
-              <div className="text-xl font-bold text-emerald-900 dark:text-emerald-100">
+              <div className="text-xl font-bold text-emerald-900 dark:text-slate-100">
                 {formatCurrency(income - totalSpent)}
               </div>
-              <div className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
+              <div className="text-sm text-emerald-600 dark:text-slate-400 mt-1">
                 Net savings
               </div>
             </div>
           </div>
 
           {/* Budget Progress */}
-          <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-2xl flex flex-col justify-between border border-purple-100 dark:border-purple-800">
+          <div className="bg-purple-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-purple-100 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">Budget Progress</span>
-              <div className="p-1.5 bg-purple-100 dark:bg-purple-800 rounded-lg shadow-sm">
-                <Target size={16} className="text-purple-600 dark:text-purple-200" />
+              <span className="text-sm font-semibold text-purple-700 dark:text-slate-300">Budget Progress</span>
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/50 rounded-lg shadow-sm">
+                <Target size={16} className="text-purple-600 dark:text-purple-300" />
               </div>
             </div>
             <div>
-              <div className="text-xl font-bold text-purple-900 dark:text-purple-100">
+              <div className="text-xl font-bold text-purple-900 dark:text-slate-100">
                 {budgets.length > 0 ? `${((totalSpent / (budgets.reduce((sum, b) => sum + Number(b.monthlyLimit || 0), 0) || 1)) * 100).toFixed(1)}%` : 'N/A'}
               </div>
-              <div className="text-sm text-purple-600 dark:text-purple-400 mt-1 truncate">
+              <div className="text-sm text-purple-600 dark:text-slate-400 mt-1 truncate">
                 {budgets.length > 0 ? 'of total limit' : 'No budgets set'}
               </div>
             </div>
           </div>
 
           {/* Projected Total */}
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl flex flex-col justify-between border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-slate-200 dark:border-slate-700/60">
             <div className="flex items-start justify-between mb-2">
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Projected Total</span>
-              <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg shadow-sm">
+              <div className="p-1.5 bg-slate-200 dark:bg-slate-700/50 rounded-lg shadow-sm">
                 <Calendar size={16} className="text-slate-600 dark:text-slate-300" />
               </div>
             </div>
@@ -1159,7 +1159,7 @@ const Dashboard = ({ onLogout, userId }) => {
                     min="0"
                   />
                 ) : (
-                  <h2 className="text-3xl font-extrabold tracking-tight mb-2">
+                  <h2 className="text-3xl font-extrabold tracking-tight mb-2 text-white dark:text-white">
                     {formatCurrency(income)}
                   </h2>
                 )}
@@ -1171,7 +1171,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
 
             {/* Total Spent Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Total Spent</span>
@@ -1191,7 +1191,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
 
             {/* Net Balance Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Net Balance</span>
@@ -1211,7 +1211,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
 
             {/* Total Transactions Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <span className="text-slate-500 dark:text-slate-400 font-semibold text-sm tracking-wide uppercase">Transactions</span>
@@ -1232,7 +1232,7 @@ const Dashboard = ({ onLogout, userId }) => {
           </div>
 
           {/* Controls Panel */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             
             {/* Title & Currency */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-6">
@@ -1293,14 +1293,14 @@ const Dashboard = ({ onLogout, userId }) => {
                   type="date"
                   value={customStartDate}
                   onChange={(event) => setCustomStartDate(event.target.value)}
-                  className="h-9 rounded-lg border-none bg-slate-50 px-2 text-sm font-medium text-slate-700 focus:ring-0 outline-none dark:bg-slate-900 dark:text-slate-200"
+                  className="h-9 rounded-lg px-2 text-sm font-medium outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="text-slate-400 font-bold px-1">-</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(event) => setCustomEndDate(event.target.value)}
-                  className="h-9 rounded-lg border-none bg-slate-50 px-2 text-sm font-medium text-slate-700 focus:ring-0 outline-none dark:bg-slate-900 dark:text-slate-200"
+                  className="h-9 rounded-lg px-2 text-sm font-medium outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
@@ -1356,7 +1356,7 @@ const Dashboard = ({ onLogout, userId }) => {
         {activeTab === 'transactions' && (
           <div className="space-y-8 mb-8">
             {/* Filter Section */}
-        <div className="card bg-white mb-8 dark:bg-slate-800 dark:text-white">
+        <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 mb-8  ">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🔍 Filter Transactions</h2>
             {(filters.month || filters.year || filters.category) && (
@@ -1381,7 +1381,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   ...filters,
                   category: e.target.value,
                 })}
-                className="input-field w-full dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+                className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -1403,7 +1403,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   ...filters,
                   month: e.target.value ? parseInt(e.target.value) : null,
                 })}
-                className="input-field w-full dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+                className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Months</option>
                 {monthNames.map((month, index) => (
@@ -1425,7 +1425,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   ...filters,
                   year: e.target.value ? parseInt(e.target.value) : null,
                 })}
-                className="input-field w-full dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+                className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Years</option>
                 {[getCurrentYear, getCurrentYear - 1, getCurrentYear - 2].map((year) => (
@@ -1500,7 +1500,7 @@ const Dashboard = ({ onLogout, userId }) => {
             <div className="grid grid-cols-1 gap-8">
           {/* Transactions Table */}
           <div className="lg:col-span-2">
-            <div className="card bg-white dark:bg-slate-800 dark:text-white">
+            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100  ">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
                 {filters.month || filters.year || filters.category
                   ? 'Filtered Transactions'
@@ -1592,7 +1592,7 @@ const Dashboard = ({ onLogout, userId }) => {
           <div className="space-y-8 mb-8">
             <Stack spacing={4} sx={{ mb: 4 }}>
               {isMonthlyTotalsLoading ? (
-            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
+            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
               <p className="text-gray-500 dark:text-gray-300">Loading monthly category totals...</p>
             </div>
           ) : (
@@ -1600,11 +1600,11 @@ const Dashboard = ({ onLogout, userId }) => {
           )}
 
           {isDailySpendingLoading ? (
-            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
+            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
               <p className="text-gray-500 dark:text-gray-300">Loading daily spending...</p>
             </div>
           ) : (
-            <div className="card bg-white dark:bg-slate-800 dark:text-white">
+            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100  ">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Spending</h2>
                 <span className="text-sm text-gray-500 dark:text-gray-300">{globalLabel}</span>
@@ -1662,7 +1662,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* BUDGETS TAB */}
         {activeTab === 'budgets' && (
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Budgets</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">Budgets management coming soon.</p>
             <button
@@ -1676,7 +1676,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* GOALS TAB */}
         {activeTab === 'goals' && (
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals</h2>
             <p className="text-gray-500 dark:text-gray-400">Financial goals tracking coming soon.</p>
           </div>
@@ -1684,7 +1684,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* REPORTS TAB */}
         {activeTab === 'reports' && (
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reports</h2>
             <p className="text-gray-500 dark:text-gray-400">Detailed financial reports coming soon.</p>
           </div>
@@ -1692,7 +1692,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Settings</h2>
             <p className="text-gray-500 dark:text-gray-400">Account settings coming soon.</p>
           </div>
@@ -1724,7 +1724,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   name="category"
                   value={budgetForm.category}
                   onChange={handleBudgetInputChange}
-                  className="input-field w-full dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+                  className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
                 >
                   {categories.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -1742,7 +1742,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   step="0.01"
                   value={budgetForm.monthlyLimit}
                   onChange={handleBudgetInputChange}
-                  className="input-field w-full dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+                  className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter amount"
                 />
               </div>

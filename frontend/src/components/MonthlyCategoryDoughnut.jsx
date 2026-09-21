@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PieChart,
   Pie,
@@ -19,11 +19,23 @@ const COLORS = [
 ];
 
 const MonthlyCategoryDoughnut = ({ data = [] }) => {
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const updateTheme = () => setIsDarkMode(root.classList.contains('dark'));
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   if (!data.length) {
     return (
-      <div className="card bg-white">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Current Month Category Totals</h2>
-        <p className="text-gray-500">No transactions for the current month.</p>
+      <div className="card bg-white dark:bg-slate-800 dark:border-slate-700/60">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Current Month Category Totals</h2>
+        <p className="text-slate-500 dark:text-slate-400">No transactions for the current month.</p>
       </div>
     );
   }
@@ -34,8 +46,8 @@ const MonthlyCategoryDoughnut = ({ data = [] }) => {
   }));
 
   return (
-    <div className="card bg-white">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Current Month Category Totals</h2>
+    <div className="card bg-white dark:bg-slate-800 dark:border-slate-700/60">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Current Month Category Totals</h2>
       <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -52,7 +64,15 @@ const MonthlyCategoryDoughnut = ({ data = [] }) => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Total']} />
+            <Tooltip 
+              formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Total']} 
+              contentStyle={{
+                backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                borderColor: isDarkMode ? '#334155' : '#e2e8f0',
+                color: isDarkMode ? '#f1f5f9' : '#0f172a',
+              }}
+              itemStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
+            />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
