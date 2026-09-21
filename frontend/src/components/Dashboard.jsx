@@ -1014,10 +1014,30 @@ const Dashboard = ({ onLogout, userId }) => {
               Here's your financial overview for this month.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60">
+              {[
+                { symbol: '$', code: 'USD', label: 'USD' },
+                { symbol: '₹', code: 'INR', label: 'INR' },
+                { symbol: '€', code: 'EUR', label: 'EUR' },
+              ].map((option) => (
+                <button
+                  key={option.code}
+                  type="button"
+                  onClick={() => setSelectedCurrency(option.code)}
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 border ${
+                    selectedCurrency === option.code
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {option.label} {option.symbol}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => navigate('/settlements')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-semibold transition-all duration-200 shadow-sm"
+              className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-semibold transition-all duration-200 shadow-sm"
               title="Group Settlements"
             >
               <HandCoins size={18} className="text-indigo-500" />
@@ -1025,7 +1045,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </button>
             <button
               onClick={() => navigate('/insights')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm"
+              className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm"
               title="View Financial Insights"
             >
               <TrendingUp size={18} />
@@ -1231,36 +1251,23 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           </div>
 
+          </Stack>
+          </div>
+        )}
+
+
+
+        {/* TRANSACTIONS TAB */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-8 mb-8">
+
           {/* Controls Panel */}
-          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             
-            {/* Title & Currency */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800 dark:text-white">Date Range</h2>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Showing {globalLabel.toLowerCase()}</p>
-              </div>
-              <div className="h-10 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
-              <div className="flex items-center gap-2">
-                {[
-                  { symbol: '$', code: 'USD', label: 'USD' },
-                  { symbol: '₹', code: 'INR', label: 'INR' },
-                  { symbol: '€', code: 'EUR', label: 'EUR' },
-                ].map((option) => (
-                  <button
-                    key={option.code}
-                    type="button"
-                    onClick={() => setSelectedCurrency(option.code)}
-                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 border ${
-                      selectedCurrency === option.code
-                        ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {option.label} {option.symbol}
-                  </button>
-                ))}
-              </div>
+            {/* Title */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Date Range</h2>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Showing {globalLabel.toLowerCase()}</p>
             </div>
 
             {/* Presets & Custom Date */}
@@ -1315,46 +1322,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
           
 
-          <Paper elevation={3} sx={{ p: 3 }} className="dark:bg-slate-800 dark:text-white">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-white">Recent Activity</h2>
-            {recentActivity.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-300">Click a transaction's History button to view recent audit activity.</p>
-            ) : (
-              <Timeline position="right" sx={{ p: 0, m: 0 }}>
-                {recentActivity.map((entry, index) => (
-                  <TimelineItem key={`recent-${index}`}>
-                    <TimelineOppositeContent sx={{ maxWidth: '180px', flex: 0.25 }} color="text.secondary">
-                      {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
-                    </TimelineOppositeContent>
-                    <TimelineSeparator>
-                      <TimelineDot color={entry.revisionType === 'DELETE' ? 'error' : 'primary'} />
-                      {index < recentActivity.length - 1 && <TimelineConnector />}
-                    </TimelineSeparator>
-                    <TimelineContent>
-                      <div className="p-3 border border-gray-200 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700">
-                        <p className="text-sm text-gray-800 dark:text-gray-100">{entry.message}</p>
-                        <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">
-                          Amount: {formatCurrency(entry.transaction?.amount)}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Description: {entry.transaction?.description || 'N/A'}
-                        </p>
-                      </div>
-                    </TimelineContent>
-                  </TimelineItem>
-                ))}
-              </Timeline>
-            )}
-          </Paper>
-        </Stack>
-          </div>
-        )}
-
-
-
-        {/* TRANSACTIONS TAB */}
-        {activeTab === 'transactions' && (
-          <div className="space-y-8 mb-8">
+        
             {/* Filter Section */}
         <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 mb-8  ">
           <div className="flex items-center justify-between mb-6">
@@ -1582,6 +1550,40 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           </div>
         </div>
+
+        {/* Recent Activity Timeline */}
+        <Paper elevation={3} sx={{ p: 3, mb: 4 }} className="dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-white">Recent Activity</h2>
+          {recentActivity.length === 0 ? (
+            <p className="text-gray-600 dark:text-gray-300">Click a transaction's History button to view recent audit activity.</p>
+          ) : (
+            <Timeline position="right" sx={{ p: 0, m: 0 }}>
+              {recentActivity.map((entry, index) => (
+                <TimelineItem key={`recent-${index}`}>
+                  <TimelineOppositeContent sx={{ maxWidth: '180px', flex: 0.25 }} color="text.secondary">
+                    {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
+                  </TimelineOppositeContent>
+                  <TimelineSeparator>
+                    <TimelineDot color={entry.revisionType === 'DELETE' ? 'error' : 'primary'} />
+                    {index < recentActivity.length - 1 && <TimelineConnector />}
+                  </TimelineSeparator>
+                  <TimelineContent>
+                    <div className="p-3 border border-gray-200 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700">
+                      <p className="text-sm text-gray-800 dark:text-gray-100">{entry.message}</p>
+                      <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">
+                        Amount: {formatCurrency(entry.transaction?.amount)}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Description: {entry.transaction?.description || 'N/A'}
+                      </p>
+                    </div>
+                  </TimelineContent>
+                </TimelineItem>
+              ))}
+            </Timeline>
+          )}
+        </Paper>
+
           </div>
         )}
 
@@ -1590,6 +1592,69 @@ const Dashboard = ({ onLogout, userId }) => {
         {/* ANALYTICS TAB */}
         {activeTab === 'analytics' && (
           <div className="space-y-8 mb-8">
+
+          {/* Controls Panel */}
+          <div className="mb-8 bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            
+            {/* Title */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Date Range</h2>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Showing {globalLabel.toLowerCase()}</p>
+            </div>
+
+            {/* Presets & Custom Date */}
+            <div className="flex flex-wrap xl:flex-nowrap items-center gap-4">
+              <div className="inline-flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                {[
+                  { id: '7D', label: '7 Days' },
+                  { id: '30D', label: '30 Days' },
+                  { id: '90D', label: '90 Days' },
+                  { id: '1Y', label: '1 Year' },
+                  { id: 'ALL', label: 'All Time' },
+                ].map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setDateFilter(preset.id)}
+                    className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                      dateFilter === preset.id
+                        ? 'bg-slate-900 text-white shadow-md dark:bg-blue-600'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(event) => setCustomStartDate(event.target.value)}
+                  className="h-9 rounded-lg px-2 text-sm font-medium outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-slate-400 font-bold px-1">-</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(event) => setCustomEndDate(event.target.value)}
+                  className="h-9 rounded-lg px-2 text-sm font-medium outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleCustomDateApply}
+                  className="h-9 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 transition shadow-sm ml-1"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+
+          
+
+        
             <Stack spacing={4} sx={{ mb: 4 }}>
               {isMonthlyTotalsLoading ? (
             <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">

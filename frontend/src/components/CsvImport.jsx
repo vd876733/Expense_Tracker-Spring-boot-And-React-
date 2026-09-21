@@ -90,10 +90,10 @@ const CsvImport = ({ onImportSuccess }) => {
   return (
     <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">📁 Bulk Import (CSV)</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">📁 Bulk Import (CSV)</h2>
         <button
           onClick={() => setShowInstructions(!showInstructions)}
-          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition"
+          className="bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium px-3 py-1.5 transition-colors"
         >
           {showInstructions ? 'Hide' : 'Show'} Instructions
         </button>
@@ -156,14 +156,14 @@ const CsvImport = ({ onImportSuccess }) => {
       {/* Import Form */}
       <form onSubmit={handleUpload} className="mb-6">
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3">
             Select CSV File
           </label>
           <div className="flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl bg-slate-50 dark:bg-slate-900/60 transition-colors cursor-pointer">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <svg
-                  className="w-8 h-8 text-gray-400 mb-2"
+                  className="w-8 h-8 text-slate-700 dark:text-slate-200 mb-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -175,7 +175,7 @@ const CsvImport = ({ onImportSuccess }) => {
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-slate-700 dark:text-slate-200">
                   {file ? (
                     <span className="font-semibold text-blue-600">{file.name}</span>
                   ) : (
@@ -184,7 +184,7 @@ const CsvImport = ({ onImportSuccess }) => {
                     </>
                   )}
                 </p>
-                <p className="text-xs text-gray-500">CSV files only (Max 10MB)</p>
+                <p className="text-xs text-slate-400 dark:text-slate-400">CSV files only (Max 10MB)</p>
               </div>
               <input
                 type="file"
@@ -200,7 +200,7 @@ const CsvImport = ({ onImportSuccess }) => {
         <button
           type="submit"
           disabled={!file || loading}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold"
+          className="w-full px-4 py-2 rounded-lg transition-all font-semibold disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white shadow-md cursor-pointer disabled:shadow-none"
         >
           {loading ? 'Importing...' : 'Import Transactions'}
         </button>
