@@ -79,6 +79,7 @@ const Dashboard = ({ onLogout, userId }) => {
       return null;
     }
   });
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [dateFilter, setDateFilter] = useState('ALL');
   const [transactions, setTransactions] = useState([]);
   const [topCategory, setTopCategory] = useState(null);
@@ -910,34 +911,28 @@ const Dashboard = ({ onLogout, userId }) => {
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-2 mt-4">
-            <button className="flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl shadow-md transition-all font-semibold w-full">
-              <LayoutDashboard size={20} />
-              <span>Dashboard</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <ArrowRightLeft size={20} />
-              <span>Transactions</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <PieChart size={20} />
-              <span>Analytics</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <Wallet size={20} />
-              <span>Budgets</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <Target size={20} />
-              <span>Goals</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <FileText size={20} />
-              <span>Reports</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium w-full">
-              <Settings size={20} />
-              <span>Settings</span>
-            </button>
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+              { id: 'transactions', label: 'Transactions', icon: <ArrowRightLeft size={20} /> },
+              { id: 'analytics', label: 'Analytics', icon: <PieChart size={20} /> },
+              { id: 'budgets', label: 'Budgets', icon: <Wallet size={20} /> },
+              { id: 'goals', label: 'Goals', icon: <Target size={20} /> },
+              { id: 'reports', label: 'Reports', icon: <FileText size={20} /> },
+              { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full ${
+                  activeTab === tab.id
+                    ? 'bg-blue-600 text-white font-semibold shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </nav>
         </div>
 
@@ -1004,7 +999,12 @@ const Dashboard = ({ onLogout, userId }) => {
           </div>
         </div>
 
-        {/* Greeting & Action Buttons Row */}
+        
+
+        {/* DASHBOARD TAB */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8 mb-8">
+            {/* Greeting & Action Buttons Row */}
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -1313,31 +1313,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           </div>
 
-          {isMonthlyTotalsLoading ? (
-            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
-              <p className="text-gray-500 dark:text-gray-300">Loading monthly category totals...</p>
-            </div>
-          ) : (
-            <MonthlyCategoryDoughnut data={monthlyCategoryTotals} />
-          )}
-
-          {isDailySpendingLoading ? (
-            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
-              <p className="text-gray-500 dark:text-gray-300">Loading daily spending...</p>
-            </div>
-          ) : (
-            <div className="card bg-white dark:bg-slate-800 dark:text-white">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Spending</h2>
-                <span className="text-sm text-gray-500 dark:text-gray-300">{globalLabel}</span>
-              </div>
-              <DailySpendingAreaChart
-                data={dailySpendingChartData}
-                title={dailySpendingTitle}
-                formatValue={formatCurrency}
-              />
-            </div>
-          )}
+          
 
           <Paper elevation={3} sx={{ p: 3 }} className="dark:bg-slate-800 dark:text-white">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-white">Recent Activity</h2>
@@ -1371,8 +1347,15 @@ const Dashboard = ({ onLogout, userId }) => {
             )}
           </Paper>
         </Stack>
+          </div>
+        )}
 
-        {/* Filter Section */}
+
+
+        {/* TRANSACTIONS TAB */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-8 mb-8">
+            {/* Filter Section */}
         <div className="card bg-white mb-8 dark:bg-slate-800 dark:text-white">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🔍 Filter Transactions</h2>
@@ -1493,8 +1476,8 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           )}
         </div>
-
-        <div className="flex justify-center gap-4 mb-8">
+            
+            <div className="flex justify-center gap-4 mb-8">
           <button
             onClick={() => setIsModalOpen(true)}
             className="btn-primary px-8 py-3 text-lg font-semibold rounded-lg hover:shadow-lg transition-shadow"
@@ -1508,43 +1491,13 @@ const Dashboard = ({ onLogout, userId }) => {
             Set Budget
           </button>
         </div>
-
-        <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }} className="dark:bg-slate-800 dark:text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-indigo-600" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">✨ Smart Insights</h2>
-            </div>
-            {!aiInsights && (
-              <Button
-                variant="contained"
-                onClick={handleGetAiInsights}
-                disabled={isAiLoading}
-                startIcon={isAiLoading ? <CircularProgress size={16} color="inherit" /> : <Sparkles className="h-4 w-4" />}
-              >
-                {isAiLoading ? 'Analyzing...' : 'Generate AI Advice'}
-              </Button>
-            )}
-          </div>
-
-          {isAiLoading && !aiInsights && (
-            <div className="mt-4 flex items-center gap-3 text-gray-600 dark:text-gray-300">
-              <CircularProgress size={20} />
-              <span className="text-sm font-medium">Generating your personalized insights...</span>
-            </div>
-          )}
-
-          {aiInsights && (
-            <Typography
-              variant="body1"
-              sx={{ mt: 2, whiteSpace: 'pre-line', color: 'text.primary' }}
-            >
-              {aiInsights}
-            </Typography>
-          )}
-        </Paper>
-
-        <div className="grid grid-cols-1 gap-8">
+            
+            {/* CSV Import Section */}
+        <div className="mb-8">
+          <CsvImport onImportSuccess={handleImportSuccess} />
+        </div>
+            
+            <div className="grid grid-cols-1 gap-8">
           {/* Transactions Table */}
           <div className="lg:col-span-2">
             <div className="card bg-white dark:bg-slate-800 dark:text-white">
@@ -1629,18 +1582,123 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           </div>
         </div>
+          </div>
+        )}
 
-        {/* CSV Import Section */}
-        <div className="mb-8">
-          <CsvImport onImportSuccess={handleImportSuccess} />
-        </div>
 
-        {/* Expense Chart Section */}
+
+        {/* ANALYTICS TAB */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-8 mb-8">
+            <Stack spacing={4} sx={{ mb: 4 }}>
+              {isMonthlyTotalsLoading ? (
+            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
+              <p className="text-gray-500 dark:text-gray-300">Loading monthly category totals...</p>
+            </div>
+          ) : (
+            <MonthlyCategoryDoughnut data={monthlyCategoryTotals} />
+          )}
+
+          {isDailySpendingLoading ? (
+            <div className="card bg-white flex items-center justify-center h-60 dark:bg-slate-800 dark:text-white">
+              <p className="text-gray-500 dark:text-gray-300">Loading daily spending...</p>
+            </div>
+          ) : (
+            <div className="card bg-white dark:bg-slate-800 dark:text-white">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Spending</h2>
+                <span className="text-sm text-gray-500 dark:text-gray-300">{globalLabel}</span>
+              </div>
+              <DailySpendingAreaChart
+                data={dailySpendingChartData}
+                title={dailySpendingTitle}
+                formatValue={formatCurrency}
+              />
+            </div>
+          )}
+            </Stack>
+
+            {/* Expense Chart Section */}
         <div className="mb-8">
           <ExpenseChart transactions={transactions} formatCurrency={formatCurrency} />
         </div>
 
-        {/* Add Transaction Modal */}
+            <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }} className="dark:bg-slate-800 dark:text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-indigo-600" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">✨ Smart Insights</h2>
+            </div>
+            {!aiInsights && (
+              <Button
+                variant="contained"
+                onClick={handleGetAiInsights}
+                disabled={isAiLoading}
+                startIcon={isAiLoading ? <CircularProgress size={16} color="inherit" /> : <Sparkles className="h-4 w-4" />}
+              >
+                {isAiLoading ? 'Analyzing...' : 'Generate AI Advice'}
+              </Button>
+            )}
+          </div>
+
+          {isAiLoading && !aiInsights && (
+            <div className="mt-4 flex items-center gap-3 text-gray-600 dark:text-gray-300">
+              <CircularProgress size={20} />
+              <span className="text-sm font-medium">Generating your personalized insights...</span>
+            </div>
+          )}
+
+          {aiInsights && (
+            <Typography
+              variant="body1"
+              sx={{ mt: 2, whiteSpace: 'pre-line', color: 'text.primary' }}
+            >
+              {aiInsights}
+            </Typography>
+          )}
+        </Paper>
+          </div>
+        )}
+
+        {/* BUDGETS TAB */}
+        {activeTab === 'budgets' && (
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Budgets</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Budgets management coming soon.</p>
+            <button
+              onClick={() => setIsBudgetModalOpen(true)}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm font-semibold"
+            >
+              Set New Budget
+            </button>
+          </div>
+        )}
+
+        {/* GOALS TAB */}
+        {activeTab === 'goals' && (
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals</h2>
+            <p className="text-gray-500 dark:text-gray-400">Financial goals tracking coming soon.</p>
+          </div>
+        )}
+
+        {/* REPORTS TAB */}
+        {activeTab === 'reports' && (
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reports</h2>
+            <p className="text-gray-500 dark:text-gray-400">Detailed financial reports coming soon.</p>
+          </div>
+        )}
+
+        {/* SETTINGS TAB */}
+        {activeTab === 'settings' && (
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Settings</h2>
+            <p className="text-gray-500 dark:text-gray-400">Account settings coming soon.</p>
+          </div>
+        )}
+
+{/* Add Transaction Modal */}
         <AddTransactionModal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 

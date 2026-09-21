@@ -2,14 +2,15 @@ import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+import './index.css';
+
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 const SettlementPage = lazy(() => import('./components/SettlementPage'));
 const InsightsPage = lazy(() => import('./components/InsightsPage'));
-import ErrorBoundary from './components/ErrorBoundary';
-import ProtectedRoute from './components/ProtectedRoute';
-import './index.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
