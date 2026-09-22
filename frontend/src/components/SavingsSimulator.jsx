@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TrendingDown, Zap, Calendar } from 'lucide-react';
+
 import '../styles/SavingsSimulator.css';
 
 /**

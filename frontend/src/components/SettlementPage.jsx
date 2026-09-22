@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { getGroups, getGroupSettlements, sendGroupReminder, createGroup, getGroupExpenses, addGroupExpense } from '../services/api';
 
+
 const SettlementPage = () => {
   const [groups, setGroups] = useState([]);
   const [activeGroup, setActiveGroup] = useState(null);

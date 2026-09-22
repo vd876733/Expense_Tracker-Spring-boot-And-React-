@@ -6,6 +6,7 @@ import { getSavingsGoals, getAiCoachInsights, getTransactions } from '../service
 import { toast } from 'react-toastify';
 import CategorySpendingDonut from './CategorySpendingDonut';
 import SavingsSimulator from './SavingsSimulator';
+
 import '../styles/InsightsPage.css';
 
 const InsightsPage = () => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
+
 const THEME_KEY = 'theme';
 
 const getInitialTheme = () => {
