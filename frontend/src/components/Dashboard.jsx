@@ -2192,7 +2192,7 @@ const Dashboard = ({ onLogout, userId }) => {
       {/* Auth Modal Overlay */}
       {showAuthModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/70 backdrop-blur-md transition-colors duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowAuthModal(false);
           }}

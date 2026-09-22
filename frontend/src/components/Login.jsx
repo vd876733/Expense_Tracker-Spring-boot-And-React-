@@ -156,7 +156,7 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
   };
 
   const containerClass = isModal
-    ? "relative w-full max-w-md mx-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/80 rounded-3xl p-8 shadow-2xl transition-all"
+    ? "relative w-full max-w-md mx-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-8 shadow-2xl transition-all duration-200"
     : "min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8";
 
   const wrapperClass = isModal ? "space-y-6" : "max-w-md w-full space-y-8";
@@ -186,24 +186,24 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+              <label htmlFor="username" className="text-slate-700 dark:text-slate-300 font-medium text-sm mb-1 block">
+                Username / Email
               </label>
               <input
                 id="username"
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl p-3 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="password" className="text-slate-700 dark:text-slate-300 font-medium text-sm mb-1 block">
                 Password
               </label>
               <input
@@ -211,7 +211,7 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl p-3 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -223,26 +223,26 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
           <div className="relative">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-slate-200 dark:border-slate-700" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">OR</span>
+            <div className="relative flex justify-center">
+              <span className="bg-white dark:bg-slate-800 px-3 text-slate-400 dark:text-slate-500 text-xs uppercase font-semibold">OR</span>
             </div>
           </div>
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2 rounded-xl transition-colors">
             <div ref={googleButton} className="w-full flex justify-center"></div>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
               Don't have an account?{' '}
-              <Link to="/register" onClick={onClose} className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link to="/register" onClick={onClose} className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
                 Sign up here
               </Link>
             </p>
