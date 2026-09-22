@@ -35,9 +35,7 @@ class ApiInterceptor {
   }
 
   redirectToLogin() {
-    if (window.location.pathname !== '/login') {
-      window.location.assign('/login');
-    }
+    // Disabled redirect to allow guest mode
   }
 
   // Create headers with Authorization if token exists
@@ -67,8 +65,7 @@ class ApiInterceptor {
     });
 
     if (!token) {
-      this.redirectToLogin();
-      throw new Error('No auth token found - redirecting to login');
+      // Do not throw or redirect here to allow public endpoints and guest mode
     }
 
     const headers = this.getHeaders(options.headers);
@@ -81,7 +78,6 @@ class ApiInterceptor {
     // Handle unauthenticated requests globally
     if (response.status === 401) {
       this.clearAuthState();
-      this.redirectToLogin();
       throw new Error('Unauthorized (401) - please login again');
     }
 
@@ -125,15 +121,13 @@ class ApiInterceptor {
     
     if (!token) {
       console.error('[CSV_UPLOAD] FAILED: No auth token found in localStorage');
-      this.redirectToLogin();
-      throw new Error('No auth token found - redirecting to login');
+      throw new Error('No auth token found - please login to upload');
     }
 
     if (token === 'null' || token === 'undefined') {
       console.error('[CSV_UPLOAD] FAILED: Token is string "null" or "undefined":', token);
       this.clearAuthState();
-      this.redirectToLogin();
-      throw new Error('Invalid token value - redirecting to login');
+      throw new Error('Invalid token value - please login to upload');
     }
 
     const headers = {};
@@ -156,7 +150,6 @@ class ApiInterceptor {
 
     if (response.status === 401) {
       this.clearAuthState();
-      this.redirectToLogin();
       throw new Error('Unauthorized (401) - please login again');
     }
 

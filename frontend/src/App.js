@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ErrorBoundary from './components/ErrorBoundary';
-import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -37,11 +36,7 @@ function App() {
 
               <Route
                 path="/insights"
-                element={
-                  <ProtectedRoute>
-                    <InsightsPage />
-                  </ProtectedRoute>
-                }
+                element={<InsightsPage />}
               />
               <Route path="/" element={<Dashboard onLogout={handleLogout} userId={userId} />} />
             </Routes>

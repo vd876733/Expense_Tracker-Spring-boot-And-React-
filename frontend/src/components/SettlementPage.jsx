@@ -28,9 +28,19 @@ const SettlementPage = () => {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [createGroupError, setCreateGroupError] = useState('');
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        if (!isAuthenticated) {
+          const guestGroupsStr = localStorage.getItem('guest_groups');
+          const guestGroups = guestGroupsStr ? JSON.parse(guestGroupsStr) : [{ id: 1, groupName: 'Mock Group (Guest)' }];
+          setGroups(guestGroups);
+          if (guestGroups.length > 0) setActiveGroup(guestGroups[0]);
+          return;
+        }
+
         const fetchedGroups = await getGroups();
         setGroups(fetchedGroups);
         if (fetchedGroups.length > 0) {
@@ -43,13 +53,21 @@ const SettlementPage = () => {
       }
     };
     fetchInitialData();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (activeGroup) {
       const fetchGroupData = async () => {
         try {
           setIsFetchingExpenses(true);
+          if (!isAuthenticated) {
+            const guestDebtsStr = localStorage.getItem(`guest_debts_${activeGroup.id}`);
+            const guestExpensesStr = localStorage.getItem(`guest_expenses_${activeGroup.id}`);
+            setDebts(guestDebtsStr ? JSON.parse(guestDebtsStr) : []);
+            setGroupExpenses(guestExpensesStr ? JSON.parse(guestExpensesStr) : []);
+            return;
+          }
+
           const [settlements, expenses] = await Promise.all([
             getGroupSettlements(activeGroup.id),
             getGroupExpenses(activeGroup.id)
@@ -64,7 +82,7 @@ const SettlementPage = () => {
       };
       fetchGroupData();
     }
-  }, [activeGroup]);
+  }, [activeGroup, isAuthenticated]);
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
@@ -72,6 +90,34 @@ const SettlementPage = () => {
     
     setIsAddingExpense(true);
     try {
+      if (!isAuthenticated) {
+        const newExpense = {
+          id: `guest_exp_${Date.now()}`,
+          description: newExpenseDesc,
+          totalAmount: parseFloat(newExpenseAmt),
+          date: new Date().toISOString().split('T')[0],
+          paidBy: 'Guest User',
+          participants: ['Guest User']
+        };
+        const updatedExpenses = [...groupExpenses, newExpense];
+        setGroupExpenses(updatedExpenses);
+        localStorage.setItem(`guest_expenses_${activeGroup.id}`, JSON.stringify(updatedExpenses));
+        
+        // Mock a simple settlement for guest
+        const newDebt = {
+          debtor: 'Friend (Mock)',
+          creditor: 'Guest User',
+          amount: parseFloat(newExpenseAmt) / 2
+        };
+        const updatedDebts = [...debts, newDebt];
+        setDebts(updatedDebts);
+        localStorage.setItem(`guest_debts_${activeGroup.id}`, JSON.stringify(updatedDebts));
+        
+        setNewExpenseDesc('');
+        setNewExpenseAmt('');
+        return;
+      }
+
       await addGroupExpense(activeGroup.id, {
         description: newExpenseDesc,
         totalAmount: parseFloat(newExpenseAmt)
@@ -96,6 +142,15 @@ const SettlementPage = () => {
     const debtId = `${debt.debtor}-${debt.creditor}`;
     setRemindingStatus(prev => ({ ...prev, [debtId]: 'sending' }));
     try {
+      if (!isAuthenticated) {
+        // Mock successful reminder
+        setTimeout(() => {
+          setRemindingStatus(prev => ({ ...prev, [debtId]: 'sent' }));
+          setTimeout(() => setRemindingStatus(prev => ({ ...prev, [debtId]: null })), 3000);
+        }, 1000);
+        return;
+      }
+
       await sendGroupReminder({
         debtorEmail: debt.debtorEmail || debt.debtorPhoneNumber,
         creditorName: debt.creditor,
@@ -146,6 +201,18 @@ const SettlementPage = () => {
 
     setIsCreatingGroup(true);
     try {
+      if (!isAuthenticated) {
+        const created = { id: `guest_grp_${Date.now()}`, groupName: newGroupName.trim(), members: memberIdentifiers };
+        const updatedGroups = [...groups, created];
+        setGroups(updatedGroups);
+        localStorage.setItem('guest_groups', JSON.stringify(updatedGroups));
+        setActiveGroup(created);
+        setIsCreateGroupModalOpen(false);
+        setNewGroupName('');
+        setNewGroupMembers([{ type: 'email', value: '', countryCode: '+1' }]);
+        return;
+      }
+
       const created = await createGroup({
         groupName: newGroupName.trim(),
         emails: memberIdentifiers // Backend expects 'emails'

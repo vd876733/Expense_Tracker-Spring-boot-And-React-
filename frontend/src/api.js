@@ -49,11 +49,6 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('jwt');
       localStorage.removeItem('authToken');
-      
-      // Prevent redirect loop if already on login page
-      if (window.location.pathname !== '/login') {
-        window.location.assign('/login');
-      }
     }
     return Promise.reject(error);
   }

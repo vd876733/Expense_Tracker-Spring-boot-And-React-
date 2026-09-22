@@ -366,7 +366,8 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const fetchTransactions = useCallback(async (startDate, endDate) => {
     if (!isAuthenticated) {
-      setTransactions(demoData.transactions);
+      const guestTx = localStorage.getItem('guest_transactions');
+      setTransactions(guestTx ? JSON.parse(guestTx) : demoData.transactions);
       return;
     }
 
@@ -437,8 +438,10 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const fetchBudgets = useCallback(async () => {
     if (!isAuthenticated) {
-      setBudgets(demoData.budgets);
-      setBudgetAnalyses(demoData.budgets);
+      const guestBudgets = localStorage.getItem('guest_budgets');
+      const parsedBudgets = guestBudgets ? JSON.parse(guestBudgets) : demoData.budgets;
+      setBudgets(parsedBudgets);
+      setBudgetAnalyses(parsedBudgets);
       return;
     }
 
@@ -680,11 +683,23 @@ const Dashboard = ({ onLogout, userId }) => {
         date: normalizedDate,
       };
 
-      console.log('Sending to backend:', transactionData);
-
-      await addTransaction(transactionData);
-
-      await fetchTransactions(globalStartDate, globalEndDate);
+      if (!isAuthenticated) {
+        // Guest mode: save locally
+        const newTransaction = {
+          id: `guest_${Date.now()}`,
+          ...transactionData,
+          type: transactionData.category === 'Income' ? 'income' : 'expense'
+        };
+        const guestTx = localStorage.getItem('guest_transactions');
+        const currentTxs = guestTx ? JSON.parse(guestTx) : demoData.transactions;
+        const updatedTxs = [newTransaction, ...currentTxs];
+        localStorage.setItem('guest_transactions', JSON.stringify(updatedTxs));
+        setTransactions(updatedTxs);
+      } else {
+        console.log('Sending to backend:', transactionData);
+        await addTransaction(transactionData);
+        await fetchTransactions(globalStartDate, globalEndDate);
+      }
       
       // Close modal and show success toast
       setIsModalOpen(false);
@@ -710,9 +725,17 @@ const Dashboard = ({ onLogout, userId }) => {
     try {
       const transactionToDelete = transactions.find(t => t.id === id);
       
-      await deleteTransaction(id);
+      if (!isAuthenticated) {
+        const guestTx = localStorage.getItem('guest_transactions');
+        const currentTxs = guestTx ? JSON.parse(guestTx) : demoData.transactions;
+        const updatedTxs = currentTxs.filter(t => t.id !== id);
+        localStorage.setItem('guest_transactions', JSON.stringify(updatedTxs));
+        setTransactions(updatedTxs);
+      } else {
+        await deleteTransaction(id);
+        await fetchTransactions(globalStartDate, globalEndDate);
+      }
 
-      await fetchTransactions(globalStartDate, globalEndDate);
       toast.success('✓ Transaction deleted');
       
       if (transactionToDelete) {
@@ -792,26 +815,43 @@ const Dashboard = ({ onLogout, userId }) => {
 
     try {
       setIsSavingBudget(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('You must be logged in to save a budget');
-        return;
-      }
-
-      const numericUserId = Number(userId);
 
       const payload = {
         category: budgetForm.category,
         monthlyLimit: parseFloat(budgetForm.monthlyLimit),
       };
 
-      if (Number.isFinite(numericUserId) && numericUserId > 0) {
-        payload.userId = numericUserId;
+      if (!isAuthenticated) {
+        const guestBudgetsStr = localStorage.getItem('guest_budgets');
+        let guestBudgets = guestBudgetsStr ? JSON.parse(guestBudgetsStr) : demoData.budgets;
+        
+        // Check if category exists
+        const existingIdx = guestBudgets.findIndex(b => b.category === payload.category);
+        const newBudget = {
+          id: `guest_budget_${Date.now()}`,
+          category: payload.category,
+          limitAmount: payload.monthlyLimit,
+          amountSpent: 0,
+          remainingAmount: payload.monthlyLimit,
+          status: 'ON_TRACK'
+        };
+
+        if (existingIdx >= 0) {
+           guestBudgets[existingIdx] = { ...guestBudgets[existingIdx], limitAmount: payload.monthlyLimit, remainingAmount: payload.monthlyLimit - guestBudgets[existingIdx].amountSpent };
+        } else {
+           guestBudgets.push(newBudget);
+        }
+        localStorage.setItem('guest_budgets', JSON.stringify(guestBudgets));
+        setBudgets(guestBudgets);
+        setBudgetAnalyses(guestBudgets);
+      } else {
+        const numericUserId = Number(userId);
+        if (Number.isFinite(numericUserId) && numericUserId > 0) {
+          payload.userId = numericUserId;
+        }
+        await createBudget(payload);
+        await fetchBudgets();
       }
-
-      await createBudget(payload);
-
-      await fetchBudgets();
 
       setIsBudgetModalOpen(false);
       setBudgetForm({ category: 'Food', monthlyLimit: '' });
@@ -830,16 +870,21 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const handleConfirmResetBudgets = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const numericUserId = Number(userId);
-      if (!Number.isFinite(numericUserId)) {
-        toast.error('Unable to determine the logged-in user');
-        return;
+      if (!isAuthenticated) {
+        localStorage.removeItem('guest_budgets');
+        setBudgets([]);
+        setBudgetAnalyses([]);
+      } else {
+        const numericUserId = Number(userId);
+        if (!Number.isFinite(numericUserId)) {
+          toast.error('Unable to determine the logged-in user');
+          return;
+        }
+        await resetBudgetsByUser(numericUserId);
+        setBudgets([]);
+        setBudgetAnalyses([]);
       }
 
-      await resetBudgetsByUser(numericUserId);
-      setBudgets([]);
-      setBudgetAnalyses([]);
       setBudgetResetSuccess(true);
       setIsResetBudgetDialogOpen(false);
     } catch (err) {
@@ -1095,7 +1140,7 @@ const Dashboard = ({ onLogout, userId }) => {
           {!isAuthenticated && (
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl flex items-center justify-between mb-4 shadow-md flex-col sm:flex-row gap-3 text-center sm:text-left sticky top-0 z-20">
               <div>
-                <p className="font-bold">You are currently in Guest Mode. Sign in to sync your data across devices.</p>
+                <p className="font-bold text-sm">Guest Mode — You can test all features freely. Click Sign In anytime to save data across devices.</p>
               </div>
               <button 
                 onClick={() => setShowAuthModal(true)} 
@@ -2146,7 +2191,12 @@ const Dashboard = ({ onLogout, userId }) => {
 
       {/* Auth Modal Overlay */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 backdrop-blur-md">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 backdrop-blur-md"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAuthModal(false);
+          }}
+        >
           <Login 
             isModal={true} 
             onLoginSuccess={() => {
