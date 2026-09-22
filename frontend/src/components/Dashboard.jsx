@@ -1185,19 +1185,36 @@ const Dashboard = ({ onLogout, userId }) => {
               </button>
 
               {isNotificationOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Notifications</h3>
-                    {unreadCount > 0 && (
-                      <button 
-                        onClick={markAllAsRead}
-                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
-                      >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
+                <div 
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md transition-all duration-300"
+                  onClick={() => setIsNotificationOpen(false)}
+                >
+                  <div 
+                    className="relative w-11/12 max-w-lg mx-auto bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl max-h-[80vh] flex flex-col overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                      <h3 className="font-bold text-xl">Notifications</h3>
+                      <div className="flex items-center gap-4">
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={markAllAsRead}
+                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => setIsNotificationOpen(false)}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        >
+                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-1 my-4 custom-scrollbar">
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-slate-500 dark:text-slate-400">
                         No notifications yet
@@ -1206,7 +1223,7 @@ const Dashboard = ({ onLogout, userId }) => {
                       notifications.map(notif => (
                         <div 
                           key={notif.id} 
-                          className={`p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${!notif.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
+                          className={`p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors ${!notif.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
                         >
                           <div className="flex items-start gap-3">
                             <div className="text-2xl mt-1 leading-none">{getCategoryEmoji(notif.category)}</div>
@@ -1230,6 +1247,7 @@ const Dashboard = ({ onLogout, userId }) => {
                         </div>
                       ))
                     )}
+                  </div>
                   </div>
                 </div>
               )}
