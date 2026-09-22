@@ -36,6 +36,7 @@ import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
 import SettlementPage from './SettlementPage';
+import BudgetSection from './BudgetSection';
 import Login from './Login';
 const demoData = {
   transactions: [
@@ -214,6 +215,20 @@ const Dashboard = ({ onLogout, userId }) => {
   const handleGoogleLoginError = useCallback(() => {
     toast.error('Google sign-in failed. Please try again.');
   }, []);
+
+  // Accessibility fix for modals
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (isModalOpen || isBudgetModalOpen || isResetBudgetDialogOpen || isHistoryOpen || showAuthModal) {
+      document.activeElement?.blur();
+      if (rootElement) rootElement.setAttribute('inert', '');
+    } else {
+      if (rootElement) rootElement.removeAttribute('inert');
+    }
+    return () => {
+      if (rootElement) rootElement.removeAttribute('inert');
+    };
+  }, [isModalOpen, isBudgetModalOpen, isResetBudgetDialogOpen, isHistoryOpen, showAuthModal]);
 
   const handleLogout = useCallback(() => {
     googleLogout();
@@ -462,8 +477,14 @@ const Dashboard = ({ onLogout, userId }) => {
       : username
         ? await getBudgetAnalysesByUsername(username)
         : [];
-    setBudgets(budgetsData);
-    setBudgetAnalyses(budgetsData);
+        
+    const data = Array.isArray(budgetsData) 
+      ? budgetsData 
+      : (budgetsData?.data || budgetsData?.content || []);
+      
+    console.log("Fetched budgets list:", data);
+    setBudgets(data);
+    setBudgetAnalyses(data);
   }, [getUsernameFromToken, userId, isAuthenticated]);
 
   const fetchDashboardData = useCallback(async (startDate, endDate) => {
@@ -2038,15 +2059,21 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* BUDGETS TAB */}
         {activeTab === 'budgets' && (
-          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Budgets</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Budgets management coming soon.</p>
-            <button
-              onClick={() => setIsBudgetModalOpen(true)}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm font-semibold"
-            >
-              Set New Budget
-            </button>
+          <div className="w-full">
+            <div className="flex justify-between items-center mb-6 px-4">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Budgets</h2>
+              <button
+                onClick={() => setIsBudgetModalOpen(true)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm font-semibold flex items-center gap-2"
+              >
+                Set New Budget
+              </button>
+            </div>
+            <BudgetSection 
+              budgets={budgets} 
+              transactions={transactions} 
+              formatCurrency={formatCurrency} 
+            />
           </div>
         )}
 

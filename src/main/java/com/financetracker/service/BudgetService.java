@@ -97,6 +97,16 @@ public class BudgetService {
     }
 
     /**
+     * Get all budgets for a user
+     * @param userId the user ID
+     * @return List of Budget entities
+     */
+    public List<Budget> getBudgets(Long userId) {
+        User user = resolveUser(userId);
+        return budgetRepository.findByUser_Id(user.getId());
+    }
+
+    /**
      * Create a new budget
      * @param category the category name
      * @param monthlyLimit the monthly spending limit

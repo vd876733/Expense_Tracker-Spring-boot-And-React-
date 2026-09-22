@@ -116,6 +116,20 @@ public class BudgetController {
     }
 
     /**
+     * GET all budgets for a user
+     * @return List of Budget for the authenticated user
+     */
+    @GetMapping
+    public ResponseEntity<List<Budget>> getBudgets(Authentication authentication) {
+        User user = resolveUser(authentication);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<Budget> budgets = budgetService.getBudgets(user.getId());
+        return ResponseEntity.ok(budgets);
+    }
+
+    /**
      * POST create a new budget
      * @param budgetDTO the budget data
      * @return Created Budget entity

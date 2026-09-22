@@ -68,6 +68,7 @@ import {
 import CsvImport from './CsvImport';
 import AddTransactionModal from './AddTransactionModal';
 import SmartInsights from './SmartInsights';
+import BudgetSection from './BudgetSection';
 import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
@@ -210,6 +211,20 @@ const Dashboard = ({ onLogout, userId }) => {
     }
     navigate('/login');
   }, [navigate, onLogout]);
+
+  // Accessibility fix for modals to prevent 'aria-hidden' warnings
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (isModalOpen || isBudgetModalOpen || isResetBudgetDialogOpen || isHistoryOpen) {
+      document.activeElement?.blur();
+      if (rootElement) rootElement.setAttribute('inert', '');
+    } else {
+      if (rootElement) rootElement.removeAttribute('inert');
+    }
+    return () => {
+      if (rootElement) rootElement.removeAttribute('inert');
+    };
+  }, [isModalOpen, isBudgetModalOpen, isResetBudgetDialogOpen, isHistoryOpen]);
 
   const [filters, setFilters] = useState({
     month: null,
@@ -385,8 +400,14 @@ const Dashboard = ({ onLogout, userId }) => {
         : username
         ? await getBudgetAnalysesByUsername(username)
         : [];
-    setBudgets(budgetsData);
-    setBudgetAnalyses(budgetsData);
+        
+    const data = Array.isArray(budgetsData) 
+      ? budgetsData 
+      : (budgetsData?.data || budgetsData?.content || []);
+      
+    console.log("Fetched budgets list:", data);
+    setBudgets(data);
+    setBudgetAnalyses(data);
   }, [getUsernameFromToken, userId]);
 
   const fetchDashboardData = useCallback(
@@ -680,7 +701,8 @@ const Dashboard = ({ onLogout, userId }) => {
         payload.userId = numericUserId;
       }
 
-      await createBudget(payload);
+      const response = await createBudget(payload);
+      setBudgets((prev) => [...prev, response]);
       await fetchBudgets();
 
       setIsBudgetModalOpen(false);
@@ -1090,6 +1112,12 @@ const Dashboard = ({ onLogout, userId }) => {
             formatCurrency={formatCurrency}
             onSetBudgetClick={() => setIsBudgetModalOpen(true)}
             onResetBudgets={handleResetBudgets}
+          />
+
+          <BudgetSection
+            budgets={budgets}
+            transactions={transactions}
+            formatCurrency={formatCurrency}
           />
 
           {error && (

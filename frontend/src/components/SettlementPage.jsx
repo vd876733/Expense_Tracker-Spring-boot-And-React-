@@ -31,6 +31,20 @@ const SettlementPage = () => {
 
   const isAuthenticated = !!localStorage.getItem('token');
 
+  // Accessibility fix for modals
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (isModalOpen || isCreateGroupModalOpen) {
+      document.activeElement?.blur();
+      if (rootElement) rootElement.setAttribute('inert', '');
+    } else {
+      if (rootElement) rootElement.removeAttribute('inert');
+    }
+    return () => {
+      if (rootElement) rootElement.removeAttribute('inert');
+    };
+  }, [isModalOpen, isCreateGroupModalOpen]);
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
