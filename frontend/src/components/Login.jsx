@@ -21,6 +21,7 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
     }
 
     try {
+      setLoading(true);
       console.log('Google ID token received, authenticating with backend...');
 
       const apiResponse = await api.post('/auth/google', {
@@ -85,6 +86,8 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
         error.response?.data?.error ||
         'Google sign-in failed on the server. Please try again.'
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,7 +160,7 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
   };
 
   const containerClass = isModal
-    ? "relative w-full max-w-md mx-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-8 shadow-2xl transition-all duration-200"
+    ? "pointer-events-auto z-[60] relative w-full max-w-md mx-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-8 shadow-2xl transition-all duration-200"
     : "min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8";
 
   const wrapperClass = isModal ? "space-y-6" : "max-w-md w-full space-y-8";

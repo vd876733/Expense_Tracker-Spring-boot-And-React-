@@ -578,6 +578,23 @@ export const updateBudget = async (budgetId, data, options = {}) => {
 };
 
 /**
+ * Delete an existing budget
+ * @param {number|string} budgetId - Budget ID
+ * @returns {Promise<void>}
+ */
+export const deleteBudget = async (budgetId, options = {}) => {
+  try {
+    const response = await apiClient.delete(`${API_ROUTES.budgets}/${budgetId}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting budget:', error);
+    throw error;
+  }
+};
+
+/**
  * Reset all budgets for a user
  * @param {string} userId - User ID
  * @returns {Promise<void>}

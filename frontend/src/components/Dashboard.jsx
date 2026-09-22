@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
+import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, deleteBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
 import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -192,6 +192,8 @@ const Dashboard = ({ onLogout, userId }) => {
     monthlyLimit: '',
   });
   const [editingBudget, setEditingBudget] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState(null);
 
   const handleGoogleLoginSuccess = useCallback((credentialResponse) => {
     if (!credentialResponse?.credential) {
@@ -220,7 +222,7 @@ const Dashboard = ({ onLogout, userId }) => {
   // Accessibility fix for modals
   useEffect(() => {
     const rootElement = document.getElementById('root');
-    if (isModalOpen || isBudgetModalOpen || isResetBudgetDialogOpen || isHistoryOpen || showAuthModal) {
+    if (isModalOpen || isBudgetModalOpen || isResetBudgetDialogOpen || isHistoryOpen || isDeleteDialogOpen) {
       document.activeElement?.blur();
       if (rootElement) rootElement.setAttribute('inert', '');
     } else {
@@ -229,7 +231,7 @@ const Dashboard = ({ onLogout, userId }) => {
     return () => {
       if (rootElement) rootElement.removeAttribute('inert');
     };
-  }, [isModalOpen, isBudgetModalOpen, isResetBudgetDialogOpen, isHistoryOpen, showAuthModal]);
+  }, [isModalOpen, isBudgetModalOpen, isResetBudgetDialogOpen, isHistoryOpen, isDeleteDialogOpen]);
 
   const handleLogout = useCallback(() => {
     googleLogout();
@@ -833,6 +835,38 @@ const Dashboard = ({ onLogout, userId }) => {
       monthlyLimit: budget.monthlyLimit ?? budget.limitAmount ?? budget.amount ?? '',
     });
     setIsBudgetModalOpen(true);
+  };
+
+  const handleDeleteBudget = (id) => {
+    setBudgetToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBudget = async () => {
+    if (!budgetToDelete) return;
+
+    try {
+      if (!isAuthenticated) {
+        const guestBudgetsStr = localStorage.getItem('guest_budgets');
+        if (guestBudgetsStr) {
+          const guestBudgets = JSON.parse(guestBudgetsStr);
+          const filtered = guestBudgets.filter(b => b.id !== budgetToDelete);
+          localStorage.setItem('guest_budgets', JSON.stringify(filtered));
+          setBudgets(filtered);
+          setBudgetAnalyses(filtered);
+        }
+      } else {
+        await deleteBudget(budgetToDelete);
+        await fetchBudgets();
+      }
+      toast.success('Budget deleted successfully');
+    } catch (err) {
+      toast.error('Failed to delete budget');
+      console.error(err);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setBudgetToDelete(null);
+    }
   };
 
   const handleSaveBudget = async () => {
@@ -2100,6 +2134,7 @@ const Dashboard = ({ onLogout, userId }) => {
               transactions={transactions} 
               formatCurrency={formatCurrency} 
               onEditBudget={handleEditBudget}
+              onDeleteBudget={handleDeleteBudget}
             />
           </div>
         )}
@@ -2194,15 +2229,35 @@ const Dashboard = ({ onLogout, userId }) => {
           fullWidth
           maxWidth="xs"
         >
-          <DialogTitle>Are you sure you want to reset all budget goals?</DialogTitle>
-          <DialogContent dividers>
-            <p className="text-gray-700 dark:text-gray-300">
+          <DialogTitle>Reset All Budgets</DialogTitle>
+          <DialogContent>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
               This will remove all your budget goals. This action cannot be undone.
             </p>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setIsResetBudgetDialogOpen(false)}>Cancel</Button>
             <Button color="error" variant="contained" onClick={handleConfirmResetBudgets}>Reset All</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{ className: 'w-11/12 max-w-sm mx-auto p-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl' }}
+          BackdropProps={{ className: 'bg-black/60 backdrop-blur-sm' }}
+        >
+          <DialogTitle className="text-slate-900 dark:text-slate-100 font-bold">Delete Budget</DialogTitle>
+          <DialogContent>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
+              Are you sure you want to delete this budget? This action cannot be undone.
+            </p>
+          </DialogContent>
+          <DialogActions className="px-6 pb-6 pt-2">
+            <button type="button" onClick={() => setIsDeleteDialogOpen(false)} className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cancel</button>
+            <button type="button" onClick={confirmDeleteBudget} className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-5 py-2 rounded-xl text-sm shadow-md transition-colors">Delete</button>
           </DialogActions>
         </Dialog>
 
