@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Target, AlertCircle } from 'lucide-react';
+import { Target, AlertCircle, Edit2, Trash2 } from 'lucide-react';
 
-const BudgetCard = ({ budget, categoryName, spent, formatCurrency }) => {
+const BudgetCard = ({ budget, categoryName, spent, formatCurrency, onEdit, onDelete }) => {
   const limit = Number(budget.monthlyLimit ?? budget.limitAmount ?? budget.amount ?? 0);
   const percentage = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
   const isOver = spent > limit;
@@ -12,12 +12,28 @@ const BudgetCard = ({ budget, categoryName, spent, formatCurrency }) => {
         <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
           {categoryName}
         </span>
-        {isOver && (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-full">
-            <AlertCircle className="h-3 w-3" />
-            Over Limit
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onEdit && onEdit(budget)}
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+            title="Edit Budget"
+          >
+            <Edit2 className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={() => onDelete && onDelete(budget.id)}
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition"
+            title="Delete Budget"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          {isOver && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-full">
+              <AlertCircle className="h-3 w-3" />
+              Over Limit
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-between items-end mb-2">
@@ -59,7 +75,7 @@ const BudgetCard = ({ budget, categoryName, spent, formatCurrency }) => {
   );
 };
 
-const BudgetSection = ({ budgets = [], transactions = [], formatCurrency }) => {
+const BudgetSection = ({ budgets = [], transactions = [], formatCurrency, onEditBudget, onDeleteBudget }) => {
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
@@ -108,7 +124,9 @@ const BudgetSection = ({ budgets = [], transactions = [], formatCurrency }) => {
                 categoryName={categoryName}
                 key={budget.id || categoryName} 
                 formatCurrency={formatCurrency} 
-                spent={getSpentAmount(categoryName)} 
+                spent={getSpentAmount(categoryName)}
+                onEdit={onEditBudget}
+                onDelete={onDeleteBudget}
               />
             );
           })}

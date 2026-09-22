@@ -559,6 +559,25 @@ export const createBudget = async (data, options = {}) => {
 };
 
 /**
+ * Update an existing budget
+ * @param {number|string} budgetId - Budget ID
+ * @param {Object} data - Updated budget payload
+ * @returns {Promise<Object>} Updated budget object
+ */
+export const updateBudget = async (budgetId, data, options = {}) => {
+  try {
+    const response = await apiClient.put(`${API_ROUTES.budgets}/${budgetId}`, data, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating budget:', error);
+    throw error;
+  }
+};
+
+/**
  * Reset all budgets for a user
  * @param {string} userId - User ID
  * @returns {Promise<void>}

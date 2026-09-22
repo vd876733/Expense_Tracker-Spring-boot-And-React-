@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
+import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
 import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -191,6 +191,7 @@ const Dashboard = ({ onLogout, userId }) => {
     category: 'Food',
     monthlyLimit: '',
   });
+  const [editingBudget, setEditingBudget] = useState(null);
 
   const handleGoogleLoginSuccess = useCallback((credentialResponse) => {
     if (!credentialResponse?.credential) {
@@ -825,6 +826,15 @@ const Dashboard = ({ onLogout, userId }) => {
     }
   };
 
+  const handleEditBudget = (budget) => {
+    setEditingBudget(budget);
+    setBudgetForm({
+      category: budget.categoryName || budget.category?.name || budget.category || 'Food',
+      monthlyLimit: budget.monthlyLimit ?? budget.limitAmount ?? budget.amount ?? '',
+    });
+    setIsBudgetModalOpen(true);
+  };
+
   const handleSaveBudget = async () => {
     if (isSavingBudget) {
       return;
@@ -846,22 +856,28 @@ const Dashboard = ({ onLogout, userId }) => {
         const guestBudgetsStr = localStorage.getItem('guest_budgets');
         let guestBudgets = guestBudgetsStr ? JSON.parse(guestBudgetsStr) : demoData.budgets;
         
-        // Check if category exists
-        const existingIdx = guestBudgets.findIndex(b => b.category === payload.category);
-        const newBudget = {
-          id: `guest_budget_${Date.now()}`,
-          category: payload.category,
-          limitAmount: payload.monthlyLimit,
-          amountSpent: 0,
-          remainingAmount: payload.monthlyLimit,
-          status: 'ON_TRACK'
-        };
-
-        if (existingIdx >= 0) {
-           guestBudgets[existingIdx] = { ...guestBudgets[existingIdx], limitAmount: payload.monthlyLimit, remainingAmount: payload.monthlyLimit - guestBudgets[existingIdx].amountSpent };
+        if (editingBudget) {
+          const existingIdx = guestBudgets.findIndex(b => b.id === editingBudget.id);
+          if (existingIdx >= 0) {
+             guestBudgets[existingIdx] = { ...guestBudgets[existingIdx], limitAmount: payload.monthlyLimit, category: payload.category, remainingAmount: payload.monthlyLimit - guestBudgets[existingIdx].amountSpent };
+          }
         } else {
-           guestBudgets.push(newBudget);
+          const existingIdx = guestBudgets.findIndex(b => b.category === payload.category);
+          const newBudget = {
+            id: `guest_budget_${Date.now()}`,
+            category: payload.category,
+            limitAmount: payload.monthlyLimit,
+            amountSpent: 0,
+            remainingAmount: payload.monthlyLimit,
+            status: 'ON_TRACK'
+          };
+          if (existingIdx >= 0) {
+             guestBudgets[existingIdx] = { ...guestBudgets[existingIdx], limitAmount: payload.monthlyLimit, remainingAmount: payload.monthlyLimit - guestBudgets[existingIdx].amountSpent };
+          } else {
+             guestBudgets.push(newBudget);
+          }
         }
+        
         localStorage.setItem('guest_budgets', JSON.stringify(guestBudgets));
         setBudgets(guestBudgets);
         setBudgetAnalyses(guestBudgets);
@@ -870,11 +886,17 @@ const Dashboard = ({ onLogout, userId }) => {
         if (Number.isFinite(numericUserId) && numericUserId > 0) {
           payload.userId = numericUserId;
         }
-        await createBudget(payload);
+        
+        if (editingBudget) {
+          await updateBudget(editingBudget.id, payload);
+        } else {
+          await createBudget(payload);
+        }
         await fetchBudgets();
       }
 
       setIsBudgetModalOpen(false);
+      setEditingBudget(null);
       setBudgetForm({ category: 'Food', monthlyLimit: '' });
       toast.success('✓ Budget saved successfully');
     } catch (err) {
@@ -2063,7 +2085,11 @@ const Dashboard = ({ onLogout, userId }) => {
             <div className="flex justify-between items-center mb-6 px-4">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Budgets</h2>
               <button
-                onClick={() => setIsBudgetModalOpen(true)}
+                onClick={() => {
+                  setEditingBudget(null);
+                  setBudgetForm({ category: 'Food', monthlyLimit: '' });
+                  setIsBudgetModalOpen(true);
+                }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm font-semibold flex items-center gap-2"
               >
                 Set New Budget
@@ -2073,6 +2099,7 @@ const Dashboard = ({ onLogout, userId }) => {
               budgets={budgets} 
               transactions={transactions} 
               formatCurrency={formatCurrency} 
+              onEditBudget={handleEditBudget}
             />
           </div>
         )}
@@ -2120,7 +2147,7 @@ const Dashboard = ({ onLogout, userId }) => {
           PaperProps={{ className: 'w-11/12 max-w-lg mx-auto p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl' }}
           BackdropProps={{ className: 'bg-black/60 backdrop-blur-sm' }}
         >
-          <DialogTitle className="text-slate-900 dark:text-slate-100 font-bold">Set Monthly Budget</DialogTitle>
+          <DialogTitle className="text-slate-900 dark:text-slate-100 font-bold">{editingBudget ? 'Edit Monthly Budget' : 'Set Monthly Budget'}</DialogTitle>
           <DialogContent dividers>
             <div className="grid grid-cols-1 gap-4 pt-1">
               <div>
