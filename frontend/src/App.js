@@ -43,7 +43,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Dashboard onLogout={handleLogout} userId={userId} />} />
             </Routes>
           </Suspense>
           <ToastContainer

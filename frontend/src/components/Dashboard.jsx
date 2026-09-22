@@ -139,8 +139,8 @@ const Dashboard = ({ onLogout, userId }) => {
   const [notifications, setNotifications] = useState(getInitialNotifications);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(!localStorage.getItem('token'));
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const addNotification = useCallback(({ title, description, category, type, timestamp }) => {
     setNotifications((prev) => {
@@ -308,11 +308,15 @@ const Dashboard = ({ onLogout, userId }) => {
         return parsedUser?.email || null;
       }
       const storedProfile = localStorage.getItem('userProfile');
-      if (!storedProfile) {
-        return null;
+      if (storedProfile) {
+        const parsedProfile = JSON.parse(storedProfile);
+        return parsedProfile?.email || null;
       }
-      const parsedProfile = JSON.parse(storedProfile);
-      return parsedProfile?.email || null;
+      const token = localStorage.getItem('token');
+      if (token) {
+        return getUsernameFromToken(token);
+      }
+      return null;
     } catch (error) {
       console.error('Failed to parse stored user profile:', error);
       return null;
@@ -329,7 +333,7 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   const fetchTransactions = useCallback(async (startDate, endDate) => {
-    if (isDemoMode) {
+    if (!isAuthenticated) {
       setTransactions(demoData.transactions);
       return;
     }
@@ -351,10 +355,10 @@ const Dashboard = ({ onLogout, userId }) => {
       console.error('Error fetching transactions:', err);
       throw err; // Re-throw to be caught by fetchDashboardData
     }
-  }, [isDemoMode]);
+  }, [isAuthenticated]);
 
   const fetchMonthlyCategoryTotals = useCallback(async () => {
-    if (isDemoMode) {
+    if (!isAuthenticated) {
       setMonthlyCategoryTotals(demoData.monthlyCategoryTotals);
       return;
     }
@@ -374,10 +378,10 @@ const Dashboard = ({ onLogout, userId }) => {
     } finally {
       setIsMonthlyTotalsLoading(false);
     }
-  }, [isDemoMode]);
+  }, [isAuthenticated]);
 
   const fetchDailySpendingChartData = useCallback(async (startDate, endDate) => {
-    if (isDemoMode) {
+    if (!isAuthenticated) {
       setDailySpendingChartData(demoData.dailySpendingChartData);
       return;
     }
@@ -397,10 +401,10 @@ const Dashboard = ({ onLogout, userId }) => {
     } finally {
       setIsDailySpendingLoading(false);
     }
-  }, [isDemoMode]);
+  }, [isAuthenticated]);
 
   const fetchBudgets = useCallback(async () => {
-    if (isDemoMode) {
+    if (!isAuthenticated) {
       setBudgets(demoData.budgets);
       setBudgetAnalyses(demoData.budgets);
       return;
@@ -425,7 +429,7 @@ const Dashboard = ({ onLogout, userId }) => {
         : [];
     setBudgets(budgetsData);
     setBudgetAnalyses(budgetsData);
-  }, [getUsernameFromToken, userId, isDemoMode]);
+  }, [getUsernameFromToken, userId, isAuthenticated]);
 
   const fetchDashboardData = useCallback(async (startDate, endDate) => {
     setLoading(true);
@@ -1056,13 +1060,13 @@ const Dashboard = ({ onLogout, userId }) => {
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto">
           {/* Demo Mode Banner */}
-          {isDemoMode && (
+          {!isAuthenticated && (
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl flex items-center justify-between mb-4 shadow-md flex-col sm:flex-row gap-3 text-center sm:text-left sticky top-0 z-20">
               <div>
-                <p className="font-bold">🎮 You are viewing in Demo Mode. Connect your real account to save data.</p>
+                <p className="font-bold">You are currently in Guest Mode. Sign in to sync your data across devices.</p>
               </div>
               <button 
-                onClick={() => setIsAuthModalOpen(true)} 
+                onClick={() => setShowAuthModal(true)} 
                 className="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors whitespace-nowrap shadow-sm"
               >
                 Sign In / Register
@@ -1154,15 +1158,23 @@ const Dashboard = ({ onLogout, userId }) => {
               )}
             </div>
             <ThemeToggle />
-            {!localStorage.getItem('token') && isDemoMode && (
+            {/* Guest / Demo Mode Badge */}
+            {!isAuthenticated && (
+              <div className="hidden sm:flex items-center justify-center bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-full text-xs font-medium">
+                Guest / Demo Mode
+              </div>
+            )}
+
+            {/* Prominent Sign In Button */}
+            {!isAuthenticated && (
               <button 
-                onClick={() => setIsAuthModalOpen(true)} 
-                className="hidden sm:block bg-indigo-600 text-white font-semibold px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-700 transition-colors shadow-md"
+                onClick={() => setShowAuthModal(true)} 
+                className="hidden sm:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
               >
-                Sign In / Register
+                Sign In
               </button>
             )}
-            {googleUser || isDemoMode ? (
+            {googleUser || !isAuthenticated ? (
               <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
                 {googleUser?.picture ? (
                   <img
@@ -1182,7 +1194,7 @@ const Dashboard = ({ onLogout, userId }) => {
                   {!localStorage.getItem('token') ? (
                     <button
                       type="button"
-                      onClick={() => setIsAuthModalOpen(true)}
+                      onClick={() => setShowAuthModal(true)}
                       className="text-left text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors leading-tight font-semibold"
                     >
                       Sign In / Register
@@ -1198,10 +1210,10 @@ const Dashboard = ({ onLogout, userId }) => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setIsDemoMode(!isDemoMode)}
+                        onClick={() => setIsAuthenticated(!isAuthenticated)}
                         className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight mt-1.5"
                       >
-                        {isDemoMode ? 'Switch to Live Account' : 'Switch to Demo Account'}
+                        {!isAuthenticated ? 'Switch to Live Account' : 'Switch to Demo Account'}
                       </button>
                     </>
                   )}
@@ -2101,15 +2113,23 @@ const Dashboard = ({ onLogout, userId }) => {
       </div>
 
       {/* Auth Modal Overlay */}
-      {isAuthModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md transition-all duration-300">
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 backdrop-blur-md">
           <Login 
             isModal={true} 
             onLoginSuccess={() => {
-              setIsAuthModalOpen(false);
-              setIsDemoMode(false);
+              setShowAuthModal(false);
+              setIsAuthenticated(true);
+              const storedGoogleUser = localStorage.getItem('googleUser');
+              if (storedGoogleUser) {
+                try {
+                  setGoogleUser(JSON.parse(storedGoogleUser));
+                } catch (e) {
+                  console.error('Failed to parse googleUser:', e);
+                }
+              }
             }}
-            onClose={() => setIsAuthModalOpen(false)}
+            onClose={() => setShowAuthModal(false)}
           />
         </div>
       )}
