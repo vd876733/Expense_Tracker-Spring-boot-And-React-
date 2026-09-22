@@ -217,16 +217,48 @@ const Dashboard = ({ onLogout, userId }) => {
 
   const handleLogout = useCallback(() => {
     googleLogout();
-    localStorage.clear();
-    clearDashboardState();
-    setIncome(0);
+    
+    // Clear user session data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('googleUser');
+    localStorage.removeItem('lastSessionToken');
+
+    // Load default mock/demo dataset
+    setTransactions(demoData.transactions);
+    setMonthlyCategoryTotals(demoData.monthlyCategoryTotals);
+    setDailySpendingChartData(demoData.dailySpendingChartData);
+    setBudgets(demoData.budgets);
+    setBudgetAnalyses(demoData.budgets);
+    setIncome(demoData.income);
     setIsEditingIncome(false);
+    
+    // Reset user data back to default guest profile
     setGoogleUser(null);
+    
+    // Reset authentication state
+    setIsAuthenticated(false);
+    
+    // Switch view back to main dashboard tab
+    setActiveTab('dashboard');
+    
+    // Trigger success notification for the transition to Guest Demo
+    addNotification({
+      title: 'Signed Out',
+      description: 'You have been switched to the Guest Demo account.',
+      category: 'System',
+      type: 'info',
+      timestamp: new Date().toLocaleString()
+    });
+
     if (onLogout) {
       onLogout();
     }
-    navigate('/login');
-  }, [navigate, onLogout]);
+    
+    toast.info("Signed out. Returning to Guest Mode.");
+  }, [onLogout, addNotification]);
 
   // Filter state
   const [filters, setFilters] = useState({
