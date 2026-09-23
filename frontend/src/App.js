@@ -9,6 +9,7 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 const InsightsPage = lazy(() => import('./components/InsightsPage'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -27,7 +28,7 @@ function App() {
         <div className="App">
           <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
             <Routes>
-              <Route path="/login" element={<Login setToken={setToken} setUserId={setUserId} />} />
+              <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               <Route path="/register" element={<Register setToken={setToken} setUserId={setUserId} />} />
               <Route
                 path="/dashboard"
@@ -38,7 +39,7 @@ function App() {
                 path="/insights"
                 element={<InsightsPage />}
               />
-              <Route path="/" element={<Dashboard onLogout={handleLogout} userId={userId} />} />
+              <Route path="/" element={<LandingPage />} />
             </Routes>
           </Suspense>
           <ToastContainer

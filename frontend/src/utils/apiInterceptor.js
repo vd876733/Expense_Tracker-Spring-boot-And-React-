@@ -78,8 +78,8 @@ class ApiInterceptor {
     // Handle unauthenticated requests globally
     if (response.status === 401) {
       this.clearAuthState();
-      window.location.href = '/login';
-      throw new Error('Unauthorized (401) - please login again');
+      console.warn('Session expired or unauthorized. Switching to Guest Mode.');
+      throw new Error('Unauthorized (401) - switching to Guest Mode');
     }
 
     // Keep session for authorization failures (forbidden)
@@ -151,8 +151,8 @@ class ApiInterceptor {
 
     if (response.status === 401) {
       this.clearAuthState();
-      window.location.href = '/login';
-      throw new Error('Unauthorized (401) - please login again');
+      console.warn('Session expired or unauthorized. Switching to Guest Mode.');
+      throw new Error('Unauthorized (401) - switching to Guest Mode');
     }
 
     if (response.status === 403) {

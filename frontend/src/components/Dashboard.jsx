@@ -1212,8 +1212,8 @@ const Dashboard = ({ onLogout, userId }) => {
               <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">FinanceTracker</h1>
-              <p className="text-xs text-indigo-300">Track • Save • Grow</p>
+              <h1 className="text-xl font-bold text-white tracking-tight">Kosh</h1>
+              <p className="text-xs text-indigo-300">Your Digital Treasury</p>
             </div>
           </div>
 
@@ -1455,7 +1455,7 @@ const Dashboard = ({ onLogout, userId }) => {
         <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-              ☀️ Good Morning, {googleUser ? googleUser.name.split(' ')[0] : 'Varad'}!
+              Welcome, {googleUser ? googleUser.name.split(' ')[0] : 'Varad'}!
             </h1>
             <p className="text-gray-600 dark:text-slate-400 mt-1 font-medium">
               Here's your financial overview for this month.
