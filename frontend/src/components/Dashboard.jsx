@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, deleteBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById } from '../services/api';
+import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, deleteBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById, getUserCategories, addCategory } from '../services/api';
 import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -142,6 +142,37 @@ const Dashboard = ({ onLogout, userId }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [categories, setCategories] = useState([
+    { label: 'Food & Dining', value: 'Food' },
+    { label: 'Transport', value: 'Transport' },
+    { label: 'Entertainment', value: 'Entertainment' },
+    { label: 'Utilities', value: 'Utilities' },
+    { label: 'Shopping', value: 'Shopping' },
+    { label: 'Healthcare', value: 'Healthcare' },
+    { label: 'Other', value: 'Other' },
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (isAuthenticated) {
+        try {
+          const customCategories = await getUserCategories();
+          if (customCategories && customCategories.length > 0) {
+            setCategories(prev => {
+              const existingValues = new Set(prev.map(c => c.value.toLowerCase()));
+              const newOptions = customCategories
+                .filter(c => !existingValues.has(c.name.toLowerCase()))
+                .map(c => ({ label: c.name, value: c.name }));
+              return [...prev, ...newOptions];
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch custom categories:', error);
+        }
+      }
+    };
+    fetchCategories();
+  }, [isAuthenticated]);
 
   const addNotification = useCallback(({ title, description, category, type, timestamp }) => {
     setNotifications((prev) => {
@@ -191,6 +222,7 @@ const Dashboard = ({ onLogout, userId }) => {
     category: 'Food',
     monthlyLimit: '',
   });
+  const [customBudgetCategory, setCustomBudgetCategory] = useState('');
   const [editingBudget, setEditingBudget] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState(null);
@@ -709,6 +741,19 @@ const Dashboard = ({ onLogout, userId }) => {
       } else {
         console.log('Sending to backend:', transactionData);
         await addTransaction(transactionData);
+        
+        // Handle custom category
+        const catValue = transactionData.category.trim();
+        const categoryExists = categories.some(c => c.value.toLowerCase() === catValue.toLowerCase());
+        if (!categoryExists) {
+          try {
+            await addCategory(catValue);
+            setCategories(prev => [...prev, { label: catValue, value: catValue }]);
+          } catch (catError) {
+            console.error('Failed to save custom category:', catError);
+          }
+        }
+        
         await fetchTransactions(globalStartDate, globalEndDate);
       }
       
@@ -874,8 +919,29 @@ const Dashboard = ({ onLogout, userId }) => {
     try {
       setIsSavingBudget(true);
 
+      let finalCategory = budgetForm.category;
+      if (finalCategory === 'Other (Custom)') {
+        if (!customBudgetCategory || !customBudgetCategory.trim()) {
+          toast.error('Please enter a custom category name');
+          setIsSavingBudget(false);
+          return;
+        }
+        finalCategory = customBudgetCategory.trim();
+        
+        // Handle custom category saving
+        const categoryExists = categories.some(c => c.value.toLowerCase() === finalCategory.toLowerCase());
+        if (!categoryExists) {
+          try {
+            await addCategory(finalCategory);
+            setCategories(prev => [...prev, { label: finalCategory, value: finalCategory }]);
+          } catch (catError) {
+            console.error('Failed to save custom category:', catError);
+          }
+        }
+      }
+
       const payload = {
-        category: budgetForm.category,
+        category: finalCategory,
         monthlyLimit: parseFloat(budgetForm.monthlyLimit),
       };
 
@@ -922,15 +988,16 @@ const Dashboard = ({ onLogout, userId }) => {
         await fetchBudgets();
       }
 
-      setIsBudgetModalOpen(false);
-      setEditingBudget(null);
-      setBudgetForm({ category: 'Food', monthlyLimit: '' });
       toast.success('✓ Budget saved successfully');
     } catch (err) {
       toast.error('Failed to save budget');
       console.error(err);
     } finally {
       setIsSavingBudget(false);
+      setIsBudgetModalOpen(false);
+      setEditingBudget(null);
+      setBudgetForm({ category: 'Food', monthlyLimit: '' });
+      setCustomBudgetCategory('');
     }
   };
 
@@ -1012,17 +1079,6 @@ const Dashboard = ({ onLogout, userId }) => {
 
     setIsEditingIncome((current) => !current);
   };
-
-  const categories = [
-    { label: 'Food & Dining', value: 'Food' },
-    { label: 'Transport', value: 'Transport' },
-    { label: 'Entertainment', value: 'Entertainment' },
-    { label: 'Utilities', value: 'Utilities' },
-    { label: 'Shopping', value: 'Shopping' },
-    { label: 'Healthcare', value: 'Healthcare' },
-    { label: 'Other', value: 'Other' },
-  ];
-
   const getCategoryEmoji = (category) => {
     const emojiMap = {
       Food: '🍔',
@@ -2191,8 +2247,25 @@ const Dashboard = ({ onLogout, userId }) => {
                       {cat.label}
                     </option>
                   ))}
+                  {!categories.some(cat => cat.value === 'Other (Custom)') && (
+                    <option value="Other (Custom)">Other (Custom)</option>
+                  )}
                 </select>
               </div>
+              
+              {budgetForm.category === 'Other (Custom)' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2 dark:text-slate-300">Custom Category Name</label>
+                  <input
+                    type="text"
+                    value={customBudgetCategory}
+                    onChange={(e) => setCustomBudgetCategory(e.target.value)}
+                    className="w-full rounded-lg px-4 py-2 outline-none transition-colors bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Gaming"
+                  />
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2 dark:text-slate-300">Amount</label>
                 <input

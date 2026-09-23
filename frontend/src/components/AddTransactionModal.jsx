@@ -22,6 +22,7 @@ const AddTransactionModal = ({
     date: new Date().toISOString().split('T')[0],
     category: currentCategory || 'Food',
   });
+  const [customCategory, setCustomCategory] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [shakeAmount, setShakeAmount] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +43,15 @@ const AddTransactionModal = ({
     const amountValue = Number(formData.amount);
     const availableBalance = Number(totalIncome || 0) - Number(totalSpent || 0);
 
+    let finalCategory = formData.category;
+    if (finalCategory === 'Other (Custom)') {
+      if (!customCategory || !customCategory.trim()) {
+        setErrorMessage('Please enter a custom category name.');
+        return;
+      }
+      finalCategory = customCategory.trim();
+    }
+
     if (Number.isFinite(amountValue) && amountValue > availableBalance) {
       const formattedBalance = formatCurrency
         ? formatCurrency(availableBalance)
@@ -54,7 +64,8 @@ const AddTransactionModal = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      const submitData = { ...formData, category: finalCategory };
+      await onSubmit(submitData);
       
       // Reset form
       setFormData({
@@ -63,6 +74,7 @@ const AddTransactionModal = ({
         date: new Date().toISOString().split('T')[0],
         category: currentCategory || 'Food',
       });
+      setCustomCategory('');
       setErrorMessage('');
     } catch (error) {
       console.error('Failed to add transaction:', error);
@@ -183,8 +195,33 @@ const AddTransactionModal = ({
                           {cat.label}
                         </option>
                       ))}
+                      {!categories.some(cat => cat.value === 'Other (Custom)') && (
+                        <option value="Other (Custom)">Other (Custom)</option>
+                      )}
                     </select>
                   </div>
+
+                  {/* Custom Category Input */}
+                  {formData.category === 'Other (Custom)' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Custom Category Name
+                      </label>
+                      <input
+                        type="text"
+                        name="customCategory"
+                        placeholder="e.g., Gaming"
+                        value={customCategory}
+                        onChange={(e) => {
+                          setCustomCategory(e.target.value);
+                          setErrorMessage('');
+                        }}
+                        className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl p-3 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-colors"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  )}
 
                   {/* Buttons */}
                   {errorMessage && (

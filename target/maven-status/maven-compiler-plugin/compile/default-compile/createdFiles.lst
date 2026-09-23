@@ -1,3 +1,4 @@
+com\financetracker\controller\CategoryController.class
 com\financetracker\controller\SavingsGoalController.class
 com\financetracker\repository\RecurringTransactionRepository.class
 com\financetracker\entity\Transaction.class
@@ -6,6 +7,7 @@ com\financetracker\dto\DailySpendingDTO.class
 com\financetracker\exception\InsufficientBalanceException.class
 com\financetracker\controller\UserController.class
 com\financetracker\dto\AuditDTO.class
+com\financetracker\repository\UserCategoryRepository.class
 com\financetracker\service\EmailReminderService.class
 com\financetracker\entity\GroupExpense.class
 com\financetracker\service\GroupInviteEmailService.class
@@ -28,6 +30,7 @@ com\financetracker\controller\BudgetController.class
 com\financetracker\dto\MonthlyIncomeExpenseDTO.class
 com\financetracker\controller\ImportController.class
 com\financetracker\repository\ExpenseGroupRepository.class
+com\financetracker\entity\UserCategory.class
 com\financetracker\config\WebConfig.class
 com\financetracker\entity\Budget.class
 com\financetracker\repository\UserRepository.class

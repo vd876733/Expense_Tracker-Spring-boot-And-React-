@@ -805,3 +805,32 @@ export const getSpendingBreakdown = async (options = {}) => {
     throw error;
   }
 };
+
+/**
+ * Fetch custom user categories
+ * @returns {Promise<Array>} Array of category objects
+ */
+export const getUserCategories = async (options = {}) => {
+  try {
+    const response = await axiosApi.get('/categories', options);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user categories:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a custom category
+ * @param {string} name - The category name
+ * @returns {Promise<Object>} The created category object
+ */
+export const addCategory = async (name, options = {}) => {
+  try {
+    const response = await axiosApi.post('/categories', { name }, options);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating custom category:', error);
+    throw error;
+  }
+};
