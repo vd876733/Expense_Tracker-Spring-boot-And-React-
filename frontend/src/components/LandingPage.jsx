@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, ArrowRight, Sparkles, AlertTriangle, Moon, Sun, Loader2 } from 'lucide-react';
+import CursorGrid from './CursorGrid/CursorGrid';
 
 const ExpenseMockup = () => (
   <div className="w-full h-32 bg-white dark:bg-[#0F172A] rounded-xl p-3 flex flex-col gap-2 overflow-hidden relative border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none transition-colors">
@@ -110,6 +111,26 @@ const LandingPage = () => {
     setTimeout(() => navigate('/dashboard'), 1200);
   };
 
+  const themeProps = isDarkMode ? {
+    color: "#1E3A8A",
+    gridOpacity: 0.08,
+    maxOpacity: 0.85,
+    fillOpacity: 0.1,
+    radius: 160,
+    cellSize: 60,
+    holdTime: 400,
+    fadeDuration: 800
+  } : {
+    color: "#60A5FA",
+    gridOpacity: 0.04,
+    maxOpacity: 0.75,
+    fillOpacity: 0.05,
+    radius: 140,
+    cellSize: 60,
+    holdTime: 350,
+    fadeDuration: 700
+  };
+
   const features = [
     {
       mockup: <ExpenseMockup />,
@@ -150,6 +171,11 @@ const LandingPage = () => {
             <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] rounded-full bg-amber-100/40 blur-[100px] transition-all duration-1000" />
           </>
         )}
+      </div>
+
+      {/* CursorGrid Layer */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <CursorGrid {...themeProps} />
       </div>
 
       {/* Header & Theme Toggle */}
