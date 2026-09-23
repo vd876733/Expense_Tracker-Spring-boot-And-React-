@@ -31,20 +31,7 @@ const SettlementPage = () => {
 
   const isAuthenticated = !!localStorage.getItem('token');
 
-  // Accessibility fix for modals
-  useEffect(() => {
-    const rootElement = document.getElementById('root');
-    if (isModalOpen || isCreateGroupModalOpen) {
-      document.activeElement?.blur();
-      if (rootElement) rootElement.setAttribute('inert', '');
-    } else {
-      if (rootElement) rootElement.removeAttribute('inert');
-    }
-    return () => {
-      if (rootElement) rootElement.removeAttribute('inert');
-    };
-  }, [isModalOpen, isCreateGroupModalOpen]);
-
+  // Accessibility fix removed to prevent Headless UI transitions from freezing the page
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -222,7 +209,6 @@ const SettlementPage = () => {
         setGroups(updatedGroups);
         localStorage.setItem('guest_groups', JSON.stringify(updatedGroups));
         setActiveGroup(created);
-        setIsCreateGroupModalOpen(false);
         setNewGroupName('');
         setNewGroupMembers([{ type: 'email', value: '', countryCode: '+1' }]);
         return;
@@ -235,13 +221,14 @@ const SettlementPage = () => {
       // Refresh groups
       setGroups(prev => [...prev, created]);
       setActiveGroup(created);
-      setIsCreateGroupModalOpen(false);
       setNewGroupName('');
       setNewGroupMembers([{ type: 'email', value: '', countryCode: '+1' }]);
     } catch (error) {
       setCreateGroupError('Failed to create group. ' + (error.message || ''));
+      throw error;
     } finally {
       setIsCreatingGroup(false);
+      setIsCreateGroupModalOpen(false);
     }
   };
 
