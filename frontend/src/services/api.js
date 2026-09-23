@@ -1,5 +1,5 @@
 import apiInterceptor from '../utils/apiInterceptor';
-
+import axiosApi from '../api';
 // API client using interceptor for authentication
 const apiClient = apiInterceptor;
 
@@ -508,11 +508,8 @@ export const getDailySpendingChartData = async (startDate, endDate, email, optio
  */
 export const getBudgetAnalyses = async (userId, options = {}) => {
   try {
-    const response = await apiClient.get(API_ROUTES.budgetsByUser(userId), options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    const response = await axiosApi.get(API_ROUTES.budgetsByUser(userId), options);
+    return response.data;
   } catch (error) {
     console.error('Error fetching budget analyses:', error);
     throw error;
@@ -526,11 +523,8 @@ export const getBudgetAnalyses = async (userId, options = {}) => {
  */
 export const getBudgetAnalysesByUsername = async (userId, options = {}) => {
   try {
-    const response = await apiClient.get(API_ROUTES.budgetsAnalysis(userId), options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    const response = await axiosApi.get(API_ROUTES.budgetsAnalysis(userId), options);
+    return response.data;
   } catch (error) {
     console.error('Error fetching budget analyses by username:', error);
     throw error;
@@ -547,11 +541,8 @@ export const getBudgetAnalysesByUsername = async (userId, options = {}) => {
  */
 export const createBudget = async (data, options = {}) => {
   try {
-    const response = await apiClient.post(API_ROUTES.budgets, data, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    const response = await axiosApi.post(API_ROUTES.budgets, data, options);
+    return response.data;
   } catch (error) {
     console.error('Error creating budget:', error);
     throw error;
@@ -566,11 +557,8 @@ export const createBudget = async (data, options = {}) => {
  */
 export const updateBudget = async (budgetId, data, options = {}) => {
   try {
-    const response = await apiClient.put(`${API_ROUTES.budgets}/${budgetId}`, data, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    const response = await axiosApi.put(`${API_ROUTES.budgets}/${budgetId}`, data, options);
+    return response.data;
   } catch (error) {
     console.error('Error updating budget:', error);
     throw error;
@@ -584,10 +572,7 @@ export const updateBudget = async (budgetId, data, options = {}) => {
  */
 export const deleteBudget = async (budgetId, options = {}) => {
   try {
-    const response = await apiClient.delete(`${API_ROUTES.budgets}/${budgetId}`, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    await axiosApi.delete(`${API_ROUTES.budgets}/${budgetId}`, options);
   } catch (error) {
     console.error('Error deleting budget:', error);
     throw error;
@@ -601,10 +586,7 @@ export const deleteBudget = async (budgetId, options = {}) => {
  */
 export const resetBudgetsByUser = async (userId, options = {}) => {
   try {
-    const response = await apiClient.delete(API_ROUTES.budgetsByUser(userId), options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    await axiosApi.delete(API_ROUTES.budgetsByUser(userId), options);
   } catch (error) {
     console.error('Error resetting budgets:', error);
     throw error;

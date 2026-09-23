@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const getBaseUrl = () => {
   if (process.env.REACT_APP_API_BASE_URL) {
@@ -49,6 +50,9 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('jwt');
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      toast.error('Session expired. Please sign in again.');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

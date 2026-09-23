@@ -24,6 +24,7 @@ const AddTransactionModal = ({
   });
   const [errorMessage, setErrorMessage] = useState('');
   const [shakeAmount, setShakeAmount] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,7 +37,7 @@ const AddTransactionModal = ({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const amountValue = Number(formData.amount);
     const availableBalance = Number(totalIncome || 0) - Number(totalSpent || 0);
@@ -51,16 +52,23 @@ const AddTransactionModal = ({
       return;
     }
 
-    onSubmit(formData);
-    
-    // Reset form
-    setFormData({
-      description: '',
-      amount: '',
-      date: new Date().toISOString().split('T')[0],
-      category: currentCategory || 'Food',
-    });
-    setErrorMessage('');
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+      
+      // Reset form
+      setFormData({
+        description: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        category: currentCategory || 'Food',
+      });
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -188,15 +196,17 @@ const AddTransactionModal = ({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="flex-1 bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors border border-slate-200 dark:border-slate-600"
+                      disabled={isSubmitting}
+                      className="flex-1 bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors border border-slate-200 dark:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm shadow-md transition-colors"
+                      disabled={isSubmitting}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Add Transaction
+                      {isSubmitting ? 'Adding...' : 'Add Transaction'}
                     </button>
                   </div>
                 </form>

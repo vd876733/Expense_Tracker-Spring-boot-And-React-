@@ -78,6 +78,7 @@ class ApiInterceptor {
     // Handle unauthenticated requests globally
     if (response.status === 401) {
       this.clearAuthState();
+      window.location.href = '/login';
       throw new Error('Unauthorized (401) - please login again');
     }
 
@@ -150,6 +151,7 @@ class ApiInterceptor {
 
     if (response.status === 401) {
       this.clearAuthState();
+      window.location.href = '/login';
       throw new Error('Unauthorized (401) - please login again');
     }
 

@@ -219,20 +219,7 @@ const Dashboard = ({ onLogout, userId }) => {
     toast.error('Google sign-in failed. Please try again.');
   }, []);
 
-  // Accessibility fix for modals
-  useEffect(() => {
-    const rootElement = document.getElementById('root');
-    if (isModalOpen || isBudgetModalOpen || isResetBudgetDialogOpen || isHistoryOpen || isDeleteDialogOpen) {
-      document.activeElement?.blur();
-      if (rootElement) rootElement.setAttribute('inert', '');
-    } else {
-      if (rootElement) rootElement.removeAttribute('inert');
-    }
-    return () => {
-      if (rootElement) rootElement.removeAttribute('inert');
-    };
-  }, [isModalOpen, isBudgetModalOpen, isResetBudgetDialogOpen, isHistoryOpen, isDeleteDialogOpen]);
-
+  // Removed accessibility fix for modals to prevent Headless UI transitions from freezing the UI
   const handleLogout = useCallback(() => {
     googleLogout();
     
@@ -740,8 +727,14 @@ const Dashboard = ({ onLogout, userId }) => {
 
       setError(null);
     } catch (err) {
-      toast.error('Failed to add transaction');
+      toast.error(
+        err.response?.data?.message || 
+        'Failed to add transaction. Session may have expired.'
+      );
       console.error(err);
+      throw err;
+    } finally {
+      setIsModalOpen(false);
     }
   };
 
