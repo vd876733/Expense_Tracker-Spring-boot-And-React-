@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, ArrowRight, Sparkles, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { Wallet, ArrowRight, Sparkles, AlertTriangle, Moon, Sun, Loader2 } from 'lucide-react';
 
 const ExpenseMockup = () => (
   <div className="w-full h-32 bg-white dark:bg-[#0F172A] rounded-xl p-3 flex flex-col gap-2 overflow-hidden relative border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none transition-colors">
@@ -103,9 +103,11 @@ const LandingPage = () => {
   const navigate = useNavigate();
   // Default to Light mode
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleGetStarted = () => {
-    navigate('/dashboard');
+    setIsNavigating(true);
+    setTimeout(() => navigate('/dashboard'), 1200);
   };
 
   const features = [
@@ -234,6 +236,39 @@ const LandingPage = () => {
       <div className="w-full pb-6 flex justify-center z-20 pointer-events-none relative">
         <span className="text-xs text-slate-500 dark:text-slate-400 transition-colors">© 2026 Kosh. All rights reserved.</span>
       </div>
+
+      {/* Navigation Overlay */}
+      <AnimatePresence>
+        {isNavigating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-950/85 text-white' : 'bg-white/85 text-slate-900'
+            }`}
+          >
+            <div className="flex flex-col items-center justify-center relative">
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500 rounded-2xl animate-ping opacity-25"></div>
+                <div className="w-16 h-16 bg-blue-600 shadow-lg shadow-blue-600/30 rounded-2xl flex items-center justify-center relative z-10">
+                  <span className="text-white font-bold text-3xl">K</span>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold mt-6">Opening Kosh</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 text-center max-w-xs">
+                Preparing your personal financial workspace...
+              </p>
+              
+              <div className="flex items-center gap-2 mt-8">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Loading Dashboard...</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
