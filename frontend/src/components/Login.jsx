@@ -11,6 +11,13 @@ const Login = ({ setToken, setUserId, isModal, onLoginSuccess, onClose }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Ping backend silently on mount to wake up dormant connections
+    api.get('/auth/ping').catch(() => {
+      // Ignore errors silently — this is purely for server warm-up
+    });
+  }, []);
+
   const hasInitialized = useRef(false);
   const googleButton = useRef(null);
 
