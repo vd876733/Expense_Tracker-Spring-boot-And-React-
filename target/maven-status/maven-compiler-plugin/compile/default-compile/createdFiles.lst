@@ -8,8 +8,10 @@ com\financetracker\exception\InsufficientBalanceException.class
 com\financetracker\controller\UserController.class
 com\financetracker\dto\AuditDTO.class
 com\financetracker\repository\UserCategoryRepository.class
+com\financetracker\controller\GoalController.class
 com\financetracker\service\EmailReminderService.class
 com\financetracker\entity\GroupExpense.class
+com\financetracker\repository\CategoryCapRepository.class
 com\financetracker\service\GroupInviteEmailService.class
 com\financetracker\FinanceTrackerApplication.class
 com\financetracker\dto\LoginRequest.class
@@ -26,13 +28,16 @@ com\financetracker\repository\TransactionRepository.class
 com\financetracker\service\AiInsightsService.class
 com\financetracker\controller\TransactionController.class
 com\financetracker\controller\TransactionController$1.class
+com\financetracker\entity\Goal.class
 com\financetracker\controller\BudgetController.class
 com\financetracker\dto\MonthlyIncomeExpenseDTO.class
 com\financetracker\controller\ImportController.class
 com\financetracker\repository\ExpenseGroupRepository.class
 com\financetracker\entity\UserCategory.class
 com\financetracker\config\WebConfig.class
+com\financetracker\repository\GoalRepository.class
 com\financetracker\entity\Budget.class
+com\financetracker\entity\CategoryCap.class
 com\financetracker\repository\UserRepository.class
 com\financetracker\dto\CategoryTotalDTO.class
 com\financetracker\entity\SavingsGoal.class
@@ -44,6 +49,7 @@ com\financetracker\dto\SignUpRequest.class
 com\financetracker\entity\MembershipStatus.class
 com\financetracker\controller\AuthController.class
 com\financetracker\service\DebtCalculationService.class
+com\financetracker\controller\CategoryCapController.class
 com\financetracker\controller\AIInsightsController.class
 com\financetracker\dto\GroupInviteRequest.class
 com\financetracker\repository\GroupExpenseRepository.class

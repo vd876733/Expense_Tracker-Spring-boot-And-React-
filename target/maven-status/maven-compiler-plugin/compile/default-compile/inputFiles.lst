@@ -7,8 +7,10 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\AIInsightsController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\AuthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\BudgetController.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\CategoryCapController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\CategoryController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ExportController.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\GoalController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\GroupController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\HealthController.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\controller\ImportController.java
@@ -32,8 +34,10 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\dto\MonthlyIncomeExpenseDTO.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\dto\SignUpRequest.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\Budget.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\CategoryCap.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\ExpenseGroup.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\ExpenseSplit.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\Goal.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\GroupExpense.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\GroupMembership.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\entity\MembershipStatus.java
@@ -47,7 +51,9 @@ D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\exception\ResourceNotFoundException.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\FinanceTrackerApplication.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\BudgetRepository.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\CategoryCapRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\ExpenseGroupRepository.java
+D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\GoalRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\GroupExpenseRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\GroupMembershipRepository.java
 D:\Expense_Tracker-Spring-boot-And-React--main\src\main\java\com\financetracker\repository\RecurringTransactionRepository.java

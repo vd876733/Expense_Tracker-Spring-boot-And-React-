@@ -67,6 +67,22 @@ public class GoalController {
         return ResponseEntity.ok(goalRepository.save(existing));
     }
 
+    @PutMapping("/reorder")
+    public ResponseEntity<Void> reorderGoals(@RequestBody List<Goal> updatedGoals, Authentication authentication) {
+        String email = resolveEmail(authentication);
+        if (email == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
+        for (Goal updatedGoal : updatedGoals) {
+            Optional<Goal> existingOpt = goalRepository.findByIdAndUser_Email(updatedGoal.getId(), email);
+            if (existingOpt.isPresent()) {
+                Goal existing = existingOpt.get();
+                existing.setPriorityRank(updatedGoal.getPriorityRank());
+                goalRepository.save(existing);
+            }
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGoal(@PathVariable Long id, Authentication authentication) {
         String email = resolveEmail(authentication);
