@@ -38,6 +38,7 @@ import ThemeToggle from './ThemeToggle';
 import SettlementPage from './SettlementPage';
 import BudgetSection from './BudgetSection';
 import Login from './Login';
+import GoalsPage from './GoalsPage';
 const demoData = {
   transactions: [
     { id: 'd1', description: 'Whole Foods Market', amount: 145.20, date: new Date().toISOString(), category: 'Food', type: 'expense' },
@@ -2190,10 +2191,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* GOALS TAB */}
         {activeTab === 'goals' && (
-          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals</h2>
-            <p className="text-gray-500 dark:text-gray-400">Financial goals tracking coming soon.</p>
-          </div>
+          <GoalsPage transactions={transactions} />
         )}
 
         {/* REPORTS TAB */}

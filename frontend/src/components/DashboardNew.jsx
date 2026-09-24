@@ -72,6 +72,7 @@ import BudgetSection from './BudgetSection';
 import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
+import GoalsPage from './GoalsPage';
 
 
 const Dashboard = ({ onLogout, userId }) => {
@@ -116,6 +117,7 @@ const Dashboard = ({ onLogout, userId }) => {
     }
   });
 
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [dateFilter, setDateFilter] = useState('ALL');
   const [transactions, setTransactions] = useState([]);
   const [topCategory, setTopCategory] = useState(null);
@@ -965,7 +967,10 @@ const Dashboard = ({ onLogout, userId }) => {
 
           {/* Navigation Links */}
           <nav className="space-y-1">
-            <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium text-sm shadow-md transition-all">
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
+            >
               <LayoutDashboard className="h-4 w-4" />
               <span>Dashboard</span>
             </button>
@@ -981,7 +986,10 @@ const Dashboard = ({ onLogout, userId }) => {
               <PieChart className="h-4 w-4" />
               <span>Budgets</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium text-sm transition-all">
+            <button 
+              onClick={() => setActiveTab('goals')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all ${activeTab === 'goals' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
+            >
               <Target className="h-4 w-4" />
               <span>Goals</span>
             </button>
@@ -1069,6 +1077,9 @@ const Dashboard = ({ onLogout, userId }) => {
         </header>
 
         {/* Dashboard Body */}
+        {activeTab === 'goals' ? (
+          <GoalsPage />
+        ) : (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
           {/* Greeting Hero Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1439,6 +1450,7 @@ const Dashboard = ({ onLogout, userId }) => {
             <CsvImport onImportSuccess={handleImportSuccess} />
           </div>
         </div>
+        )}
       </main>
 
       {/* Modal Dialogs */}
