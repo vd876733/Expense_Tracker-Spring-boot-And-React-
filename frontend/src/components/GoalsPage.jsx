@@ -877,7 +877,7 @@ const GoalsPage = ({ transactions = [] }) => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8 font-sans">
+    <div className="max-w-7xl mx-auto p-3 sm:p-5 md:p-8 space-y-4 sm:space-y-6 md:space-y-8 font-sans">
       
       <AnimatePresence>
         {errorMsg && (
@@ -895,7 +895,7 @@ const GoalsPage = ({ transactions = [] }) => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Target className="h-8 w-8 text-indigo-500" />
             Goals & Rollover Engine
           </h1>
@@ -905,7 +905,7 @@ const GoalsPage = ({ transactions = [] }) => {
         </div>
         <button 
           onClick={() => setAddGoalModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl px-5 py-2.5 shadow-lg shadow-blue-500/25 transition-all"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl px-5 py-2.5 shadow-lg shadow-blue-500/25 transition-all"
         >
           <Plus className="h-5 w-5" />
           Add New Goal
@@ -925,11 +925,11 @@ const GoalsPage = ({ transactions = [] }) => {
                 : `${rangeSavings.activeStartDate} to ${rangeSavings.activeEndDate}`}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
              <select 
                value={filterMode} 
                onChange={(e) => setFilterMode(e.target.value)}
-               className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+               className="w-full sm:w-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
              >
                <option value="tillToday">Till Today</option>
                <option value="custom">Custom Range</option>
@@ -938,7 +938,7 @@ const GoalsPage = ({ transactions = [] }) => {
              <select 
                value={selectedCategory} 
                onChange={(e) => setSelectedCategory(e.target.value)}
-               className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+               className="w-full sm:w-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
              >
                <option value="All Categories">All Categories</option>
                {uniqueCategories.map(cat => (
@@ -947,37 +947,37 @@ const GoalsPage = ({ transactions = [] }) => {
              </select>
              
              {filterMode === 'custom' && (
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2 w-full sm:w-auto">
                  <input 
                    type="date" 
                    value={startDate} 
                    onChange={(e) => setStartDate(e.target.value)}
-                   className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+                   className="w-full sm:w-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
                  />
-                 <span className="text-slate-400">to</span>
+                 <span className="text-slate-400 text-xs sm:text-sm">to</span>
                  <input 
                    type="date" 
                    value={endDate} 
                    onChange={(e) => setEndDate(e.target.value)}
-                   className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+                   className="w-full sm:w-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
                  />
                </div>
              )}
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
-          <div className="p-6 text-center">
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Budgeted</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalAllowed.toLocaleString()}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-4 md:p-6">
+          <div className="bg-slate-50/50 dark:bg-slate-800/20 p-4 md:p-6 rounded-2xl text-center">
+            <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Budgeted</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalAllowed.toLocaleString()}</p>
           </div>
-          <div className="p-6 text-center">
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalSpent.toLocaleString()}</p>
+          <div className="bg-slate-50/50 dark:bg-slate-800/20 p-4 md:p-6 rounded-2xl text-center">
+            <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalSpent.toLocaleString()}</p>
           </div>
-          <div className="p-6 text-center bg-slate-50/50 dark:bg-slate-900/50">
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Saved</p>
-            <p className={`text-3xl font-black ${rangeSavings.totalSaved >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+          <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 md:p-6 rounded-2xl text-center sm:col-span-2 lg:col-span-1">
+            <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Saved</p>
+            <p className={`text-2xl sm:text-3xl font-black ${rangeSavings.totalSaved >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
               {rangeSavings.totalSaved >= 0 ? '+' : '-'}₹{Math.abs(rangeSavings.totalSaved).toLocaleString()}
             </p>
           </div>
@@ -999,17 +999,17 @@ const GoalsPage = ({ transactions = [] }) => {
               </div>
             </div>
             
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full sm:w-auto mt-4 md:mt-0">
               <button 
                 onClick={() => setAddAllowanceModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-slate-700 dark:text-slate-200 transition-colors"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-slate-700 dark:text-slate-200 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Add Allowance
               </button>
               
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-semibold shadow-sm ${netDailyRollover >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
-                <TrendingUp className="h-5 w-5" />
+              <div className={`w-full sm:w-auto flex items-center justify-center text-center sm:text-left gap-2 px-4 py-2 rounded-xl border font-semibold shadow-sm text-sm ${netDailyRollover >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
+                <TrendingUp className="h-5 w-5 shrink-0" />
                 <span>
                   Net Daily Rollover: {netDailyRollover >= 0 ? '+' : '-'}₹{Math.abs(netDailyRollover)}
                 </span>
@@ -1022,7 +1022,7 @@ const GoalsPage = ({ transactions = [] }) => {
               <p className="text-sm text-slate-500 dark:text-slate-400 italic">No allowances configured. Add a category cap to start calculating rollovers!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               <AnimatePresence>
                 {Object.entries(categoryCaps).map(([category, data]) => {
                   const spent = getCategorySpentToday(category);
@@ -1056,7 +1056,7 @@ const GoalsPage = ({ transactions = [] }) => {
                       </div>
 
                       <div className="flex flex-col mb-4 pr-16">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-2" title={category}>
+                        <span className="text-base sm:text-lg md:text-xl font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-2" title={category}>
                           <span>{data.icon || '✨'}</span>
                           {category}
                         </span>
@@ -1112,7 +1112,7 @@ const GoalsPage = ({ transactions = [] }) => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
           <AnimatePresence>
             {sortedGoals.map((goal, index) => {
               const isPriority1 = index === 0;
@@ -1155,16 +1155,35 @@ const GoalsPage = ({ transactions = [] }) => {
                     )}
 
                     {/* Card Top Action Bar */}
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className={`font-extrabold text-slate-900 dark:text-white flex items-center gap-2 ${isPriority1 ? 'text-2xl' : 'text-xl'}`}>
-                          <span className="text-3xl">{goal.categoryIcon}</span>
-                          {goal.name}
-                        </h3>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 mb-2">
+                    <div className="flex flex-col gap-4 justify-between items-start mb-6">
+                      <div className="w-full">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h3 className={`font-extrabold text-slate-900 dark:text-white flex items-center gap-2 ${isPriority1 ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'}`}>
+                            <span className="text-2xl sm:text-3xl">{goal.categoryIcon}</span>
+                            {goal.name}
+                          </h3>
+                          
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => openEditModal(goal)}
+                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                              title="Edit Goal"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
+                              title="Delete Goal"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 mb-2 text-sm sm:text-base">
                           Target: ₹{goal.targetAmount.toLocaleString()}
                         </p>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto w-full">
                           {(() => {
                              const activeCategories = (Array.isArray(goal.targetCategories) && goal.targetCategories.length > 0 && !goal.targetCategories.includes('All Categories'))
                                ? goal.targetCategories
@@ -1178,25 +1197,8 @@ const GoalsPage = ({ transactions = [] }) => {
                         </div>
                       </div>
                       
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => openEditModal(goal)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-                            title="Edit Goal"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteGoal(goal.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
-                            title="Delete Goal"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        
-                        <div className="relative group">
+                      <div className="flex flex-col items-start sm:items-end w-full">
+                        <div className="relative group w-full sm:w-auto">
                           <select
                             value={goal.priorityRank}
                             onChange={(e) => handlePriorityChange(goal.id, Number(e.target.value))}
@@ -1230,18 +1232,18 @@ const GoalsPage = ({ transactions = [] }) => {
                           <option value="Custom Range">Custom Range</option>
                         </select>
                         {goal.dateRange?.preset === 'Custom Range' && (
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2 w-full">
                             <input 
                               type="date" 
                               value={goal.dateRange.startDate || isolatedSavings.activeStart} 
                               onChange={(e) => updateGoalDateRange(goal.id, { startDate: e.target.value })}
-                              className="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-[10px] px-1.5 py-1 outline-none"
+                              className="w-full sm:w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-xs px-2 py-1.5 outline-none"
                             />
                             <input 
                               type="date" 
                               value={goal.dateRange.endDate || isolatedSavings.activeEnd} 
                               onChange={(e) => updateGoalDateRange(goal.id, { endDate: e.target.value })}
-                              className="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-[10px] px-1.5 py-1 outline-none"
+                              className="w-full sm:w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-xs px-2 py-1.5 outline-none"
                             />
                           </div>
                         )}
@@ -1263,12 +1265,12 @@ const GoalsPage = ({ transactions = [] }) => {
                         </div>
                       </div>
 
-                      <div className="mb-3 flex items-end gap-3">
+                      <div className="mb-3 flex flex-col items-start gap-1">
                         <div>
                           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
                             {isolatedSavings.preset === 'Custom Range' ? 'Savings in Selected Period' : 'Current Balance'}
                           </span>
-                          <span className={`font-black text-slate-900 dark:text-white ${isPriority1 ? 'text-4xl' : 'text-2xl'}`}>
+                          <span className={`font-black text-slate-900 dark:text-white ${isPriority1 ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'}`}>
                             ₹{effectiveSaved.toLocaleString()}
                           </span>
                         </div>
@@ -1320,7 +1322,7 @@ const GoalsPage = ({ transactions = [] }) => {
       {/* Add New Goal Modal */}
       <AnimatePresence>
         {isAddGoalModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1332,9 +1334,9 @@ const GoalsPage = ({ transactions = [] }) => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="relative w-full max-w-lg sm:max-w-xl mx-auto max-h-[92vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800"
             >
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">Create New Target</h2>
                 <button 
                   onClick={() => setAddGoalModalOpen(false)}
@@ -1344,7 +1346,7 @@ const GoalsPage = ({ transactions = [] }) => {
                 </button>
               </div>
               
-              <div className="p-6 space-y-5">
+              <div className="overflow-y-auto p-4 sm:p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Goal Name</label>
                   <input 
@@ -1352,41 +1354,43 @@ const GoalsPage = ({ transactions = [] }) => {
                     value={newGoal.name}
                     onChange={(e) => setNewGoal(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g. Dream Vacation"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Amount (₹)</label>
-                  <input 
-                    type="number"
-                    value={newGoal.targetAmount}
-                    onChange={(e) => setNewGoal(prev => ({ ...prev, targetAmount: e.target.value }))}
-                    placeholder="50000"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Amount (₹)</label>
+                    <input 
+                      type="number"
+                      value={newGoal.targetAmount}
+                      onChange={(e) => setNewGoal(prev => ({ ...prev, targetAmount: e.target.value }))}
+                      placeholder="50000"
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Icon (Emoji)</label>
+                    <input 
+                      type="text"
+                      value={newGoal.categoryIcon}
+                      onChange={(e) => setNewGoal(prev => ({ ...prev, categoryIcon: e.target.value }))}
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Icon (Emoji)</label>
-                  <input 
-                    type="text"
-                    value={newGoal.categoryIcon}
-                    onChange={(e) => setNewGoal(prev => ({ ...prev, categoryIcon: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 p-4 rounded-xl space-y-3">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Target Categories</label>
                   
-                  <div className="flex gap-2 mb-3">
+                  <div className="flex gap-2">
                     <input 
                       type="text"
                       placeholder="Add custom category..."
                       value={customGoalCategoryInput}
                       onChange={(e) => setCustomGoalCategoryInput(e.target.value)}
-                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+                      className="flex-1 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                     <button 
                       onClick={() => {
@@ -1407,21 +1411,21 @@ const GoalsPage = ({ transactions = [] }) => {
                           setCustomGoalCategoryInput('');
                         }
                       }}
-                      className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                      className="px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-semibold transition-colors border border-indigo-200 dark:border-indigo-500/30"
                     >
                       Add
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
                      <button
                         onClick={() => {
                            setNewGoal(prev => ({ ...prev, targetCategories: ['All Categories'] }));
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        className={`transition-all duration-150 active:scale-95 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium ${
                            newGoal.targetCategories.includes('All Categories') || newGoal.targetCategories.length === 0
-                              ? 'bg-indigo-500 text-white shadow-md'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 scale-105 font-semibold'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }`}
                      >
                         All Categories
@@ -1444,10 +1448,10 @@ const GoalsPage = ({ transactions = [] }) => {
                                     return { ...prev, targetCategories: current };
                                  });
                               }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                              className={`transition-all duration-150 active:scale-95 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium ${
                                  isSelected
-                                    ? 'bg-blue-500 text-white shadow-md'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 scale-105 font-semibold'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                               }`}
                            >
                               {cat}
@@ -1458,19 +1462,19 @@ const GoalsPage = ({ transactions = [] }) => {
                 </div>
               </div>
               
-              <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+              <div className="sticky bottom-0 z-10 p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 shrink-0">
                 <button 
                   onClick={() => setAddGoalModalOpen(false)}
-                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleAddGoal}
                   disabled={!newGoal.name || !newGoal.targetAmount}
-                  className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                  Add Goal
+                  Save Goal
                 </button>
               </div>
             </motion.div>
@@ -1481,7 +1485,7 @@ const GoalsPage = ({ transactions = [] }) => {
       {/* Edit Goal Modal */}
       <AnimatePresence>
         {isEditGoalModalOpen && editingGoal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1493,9 +1497,9 @@ const GoalsPage = ({ transactions = [] }) => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="relative w-full max-w-lg sm:max-w-xl mx-auto max-h-[92vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800"
             >
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Goal</h2>
                 <button 
                   onClick={() => { setEditGoalModalOpen(false); setEditingGoal(null); }}
@@ -1505,14 +1509,14 @@ const GoalsPage = ({ transactions = [] }) => {
                 </button>
               </div>
               
-              <div className="p-6 space-y-5">
+              <div className="overflow-y-auto p-4 sm:p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Goal Name</label>
                   <input 
                     type="text"
                     value={editingGoal.name}
                     onChange={(e) => setEditingGoal(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
                   />
                 </div>
                 
@@ -1522,43 +1526,44 @@ const GoalsPage = ({ transactions = [] }) => {
                     type="number"
                     value={editingGoal.targetAmount}
                     onChange={(e) => setEditingGoal(prev => ({ ...prev, targetAmount: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Icon (Emoji)</label>
-                  <input 
-                    type="text"
-                    value={editingGoal.categoryIcon}
-                    onChange={(e) => setEditingGoal(prev => ({ ...prev, categoryIcon: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Icon (Emoji)</label>
+                    <input 
+                      type="text"
+                      value={editingGoal.categoryIcon}
+                      onChange={(e) => setEditingGoal(prev => ({ ...prev, categoryIcon: e.target.value }))}
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Priority Rank</label>
+                    <select
+                      value={editingGoal.priorityRank}
+                      onChange={(e) => setEditingGoal(prev => ({ ...prev, priorityRank: Number(e.target.value) }))}
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                    >
+                      {goals.map((_, i) => (
+                        <option key={i+1} value={i+1}>Priority #{i+1}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Priority Rank</label>
-                  <select
-                    value={editingGoal.priorityRank}
-                    onChange={(e) => setEditingGoal(prev => ({ ...prev, priorityRank: Number(e.target.value) }))}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  >
-                    {goals.map((_, i) => (
-                      <option key={i+1} value={i+1}>Priority #{i+1}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 p-4 rounded-xl space-y-3">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Target Categories</label>
                   
-                  <div className="flex gap-2 mb-3">
+                  <div className="flex gap-2">
                     <input 
                       type="text"
                       placeholder="Add custom category..."
                       value={customGoalCategoryInput}
                       onChange={(e) => setCustomGoalCategoryInput(e.target.value)}
-                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+                      className="flex-1 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                     <button 
                       onClick={() => {
@@ -1579,21 +1584,21 @@ const GoalsPage = ({ transactions = [] }) => {
                           setCustomGoalCategoryInput('');
                         }
                       }}
-                      className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                      className="px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-semibold transition-colors border border-indigo-200 dark:border-indigo-500/30"
                     >
                       Add
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
                      <button
                         onClick={() => {
                            setEditingGoal(prev => ({ ...prev, targetCategories: ['All Categories'] }));
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        className={`transition-all duration-150 active:scale-95 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium ${
                            (editingGoal.targetCategories || []).includes('All Categories') || (editingGoal.targetCategories || []).length === 0
-                              ? 'bg-indigo-500 text-white shadow-md'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 scale-105 font-semibold'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }`}
                      >
                         All Categories
@@ -1616,10 +1621,10 @@ const GoalsPage = ({ transactions = [] }) => {
                                     return { ...prev, targetCategories: current };
                                  });
                               }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                              className={`transition-all duration-150 active:scale-95 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium ${
                                  isSelected
-                                    ? 'bg-blue-500 text-white shadow-md'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 scale-105 font-semibold'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                               }`}
                            >
                               {cat}
@@ -1630,17 +1635,17 @@ const GoalsPage = ({ transactions = [] }) => {
                 </div>
               </div>
               
-              <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+              <div className="sticky bottom-0 z-10 p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 shrink-0">
                 <button 
                   onClick={() => { setEditGoalModalOpen(false); setEditingGoal(null); }}
-                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleSaveEditedGoal}
                   disabled={!editingGoal.name || !editingGoal.targetAmount}
-                  className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Save Changes
                 </button>
