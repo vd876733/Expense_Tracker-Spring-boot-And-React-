@@ -62,8 +62,22 @@ public class Goal {
     public String getCategoryIcon() { return categoryIcon; }
     public void setCategoryIcon(String categoryIcon) { this.categoryIcon = categoryIcon; }
 
+    @ElementCollection
+    @CollectionTable(name = "goal_target_categories", joinColumns = @JoinColumn(name = "goal_id"))
+    @Column(name = "category")
+    private java.util.List<String> targetCategories;
+
+    public java.util.List<String> getTargetCategories() { return targetCategories; }
+    public void setTargetCategories(java.util.List<String> targetCategories) { this.targetCategories = targetCategories; }
+
     public Integer getPriorityRank() { return priorityRank; }
     public void setPriorityRank(Integer priorityRank) { this.priorityRank = priorityRank; }
+
+    @Column(name = "date_range", columnDefinition = "TEXT")
+    private String dateRange;
+
+    public String getDateRange() { return dateRange; }
+    public void setDateRange(String dateRange) { this.dateRange = dateRange; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

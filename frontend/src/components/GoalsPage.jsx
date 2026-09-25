@@ -23,9 +23,15 @@ const GoalsPage = ({ transactions = [] }) => {
   const [isGuest, setIsGuest] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Date Range State
+  const [filterMode, setFilterMode] = useState('tillToday');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+
   // Modals state
   const [isAddGoalModalOpen, setAddGoalModalOpen] = useState(false);
-  const [newGoal, setNewGoal] = useState({ name: '', targetAmount: '', categoryIcon: '🎯' });
+  const [newGoal, setNewGoal] = useState({ name: '', targetAmount: '', categoryIcon: '🎯', targetCategories: [] });
 
   const [isEditGoalModalOpen, setEditGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
@@ -96,7 +102,11 @@ const GoalsPage = ({ transactions = [] }) => {
         } else {
           setCategoryCaps(defaultDemoCaps);
           setCapHistory([{ effectiveDate: new Date().toISOString().split('T')[0], caps: defaultDemoCaps }]);
-          setGoals(defaultDemoGoals);
+          const savedRanges = JSON.parse(localStorage.getItem('kosh_goal_date_ranges') || '{}');
+          setGoals(defaultDemoGoals.map(g => ({
+            ...g,
+            dateRange: savedRanges[g.id] || { preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] }
+          })));
         }
         setIsInitialized(true);
         return;
@@ -107,7 +117,31 @@ const GoalsPage = ({ transactions = [] }) => {
         const goalsRes = await fetch(`${API_BASE_URL}/goals`, { headers: getAuthHeaders() });
         if (!goalsRes.ok) throw new Error('Failed to fetch goals');
         const goalsData = await goalsRes.json();
-        setGoals(goalsData || []);
+        const savedRanges = JSON.parse(localStorage.getItem('kosh_goal_date_ranges') || '{}');
+        const parsedGoals = (goalsData || []).map(g => {
+           let parsedCats = g.targetCategories;
+           if (typeof parsedCats === 'string') {
+              try {
+                 parsedCats = JSON.parse(parsedCats);
+              } catch (e) {
+                 parsedCats = parsedCats.split(',').map(c => c.trim()).filter(Boolean);
+              }
+           }
+           if (!Array.isArray(parsedCats)) parsedCats = [];
+           
+           const localRange = savedRanges[g.id];
+           let apiRange = null;
+           if (g.dateRange) {
+              apiRange = typeof g.dateRange === 'string' ? JSON.parse(g.dateRange) : g.dateRange;
+           }
+
+           return { 
+             ...g, 
+             targetCategories: parsedCats, 
+             dateRange: apiRange || localRange || { preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] } 
+           };
+        });
+        setGoals(parsedGoals);
 
         const capsRes = await fetch(`${API_BASE_URL}/category-caps`, { headers: getAuthHeaders() });
         if (!capsRes.ok) throw new Error('Failed to fetch category caps');
@@ -142,6 +176,22 @@ const GoalsPage = ({ transactions = [] }) => {
 
 
   // 3. Calculation Engines with Automatic Case Normalization
+  const getCategorySpentToday = (categoryName) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    let spentTodayAmt = 0;
+    const catLower = categoryName.toLowerCase().trim();
+    transactions.forEach(tx => {
+      if (!tx.date) return;
+      const txDate = tx.date.split('T')[0];
+      if (txDate === todayStr && (!tx.type || tx.type.toLowerCase() === 'expense')) {
+        const txCat = (tx.category || 'Other').toLowerCase().trim();
+        if (txCat === catLower) {
+          spentTodayAmt += Number(tx.amount || 0);
+        }
+      }
+    });
+    return spentTodayAmt;
+  };
   const spentToday = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     const totals = {};
@@ -169,6 +219,278 @@ const GoalsPage = ({ transactions = [] }) => {
   const netDailyRollover = useMemo(() => {
     return Object.values(categoryNets).reduce((acc, curr) => acc + curr, 0);
   }, [categoryNets]);
+
+  const getGoalDailyRollover = (targetCategories = []) => {
+    if (!targetCategories || targetCategories.length === 0 || targetCategories.includes('All Categories')) {
+      return netDailyRollover;
+    }
+    const lowerCats = targetCategories.map(c => c.trim().toLowerCase());
+    return Object.entries(categoryNets).reduce((acc, [cat, net]) => {
+      if (lowerCats.includes(cat.trim().toLowerCase())) {
+        return acc + net;
+      }
+      return acc;
+    }, 0);
+  };
+
+  const rangeSavings = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    let activeStartDate = null;
+    let activeEndDate = today;
+
+    if (filterMode === 'custom') {
+      activeStartDate = startDate || null;
+      activeEndDate = endDate || today;
+    }
+
+    const spentInPeriod = {};
+    let totalSpent = 0;
+    let earliestDate = null;
+
+    transactions.forEach(tx => {
+      if (!tx.date) return;
+      const txDate = tx.date.split('T')[0];
+      if (!earliestDate || txDate < earliestDate) earliestDate = txDate;
+    });
+    
+    if (!earliestDate) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      earliestDate = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+    
+    if (filterMode === 'tillToday' || !activeStartDate) {
+       activeStartDate = earliestDate;
+    }
+
+    transactions.forEach(tx => {
+      if (!tx.date) return;
+      const txDate = tx.date.split('T')[0];
+      
+      const inRange = txDate >= activeStartDate && txDate <= activeEndDate;
+      
+      if (inRange && (!tx.type || tx.type.toLowerCase() === 'expense')) {
+        const rawCat = tx.category || 'Other';
+        const normalizedCat = rawCat.trim().toLowerCase();
+        spentInPeriod[normalizedCat] = (spentInPeriod[normalizedCat] || 0) + Number(tx.amount || 0);
+        
+        if (selectedCategory === 'All Categories' || rawCat.trim().toLowerCase() === selectedCategory.toLowerCase()) {
+          totalSpent += Number(tx.amount || 0);
+        }
+      }
+    });
+
+    let daysInRange = 1;
+    if (activeStartDate && activeEndDate) {
+       const start = new Date(activeStartDate);
+       const end = new Date(activeEndDate);
+       const diffTime = Math.abs(end - start);
+       daysInRange = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    let totalDailyCap = 0;
+    const categoryNetsPeriod = {};
+    Object.entries(categoryCaps).forEach(([cat, data]) => {
+      const normalizedCat = cat.trim().toLowerCase();
+      
+      categoryNetsPeriod[cat] = (data.cap * daysInRange) - (spentInPeriod[normalizedCat] || 0);
+      
+      if (selectedCategory === 'All Categories' || normalizedCat === selectedCategory.toLowerCase()) {
+        totalDailyCap += data.cap;
+      }
+    });
+
+    const totalAllowed = totalDailyCap * daysInRange;
+    const totalSaved = totalAllowed - totalSpent;
+
+    return {
+      activeStartDate,
+      activeEndDate,
+      daysInRange,
+      spentInPeriod,
+      categoryNetsPeriod,
+      totalAllowed,
+      totalSpent,
+      totalSaved,
+      totalDailyCap
+    };
+  }, [transactions, filterMode, startDate, endDate, categoryCaps, selectedCategory]);
+
+  const updateGoalDateRange = async (goalId, updates) => {
+    let updatedGoal = null;
+    setGoals((prevGoals) =>
+      prevGoals.map((goal) => {
+        if (goal.id !== goalId) return goal;
+        
+        const existingRange = goal.dateRange || {
+          preset: 'Till Today',
+          startDate: '',
+          endDate: new Date().toISOString().split('T')[0]
+        };
+
+        updatedGoal = {
+          ...goal,
+          dateRange: {
+            ...existingRange,
+            ...updates
+          }
+        };
+
+        const existingSavedRanges = JSON.parse(localStorage.getItem('kosh_goal_date_ranges') || '{}');
+        existingSavedRanges[goalId] = updatedGoal.dateRange;
+        localStorage.setItem('kosh_goal_date_ranges', JSON.stringify(existingSavedRanges));
+
+        return updatedGoal;
+      })
+    );
+
+    if (updatedGoal && !isGuest) {
+      try {
+        const payload = { 
+          ...updatedGoal, 
+          dateRange: JSON.stringify(updatedGoal.dateRange)
+        };
+        await fetch(`${API_BASE_URL}/goals/${goalId}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        console.error("Failed to persist date range:", e);
+      }
+    }
+  };
+
+  const getIsolatedGoalSavings = (goal) => {
+    const dr = goal.dateRange || { preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] };
+
+    let earliestTxDate = null;
+    transactions.forEach(tx => {
+      if (!tx.date) return;
+      const txDate = tx.date.split('T')[0];
+      if (!earliestTxDate || txDate < earliestTxDate) earliestTxDate = txDate;
+    });
+    if (!earliestTxDate) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      earliestTxDate = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+    const today = new Date().toISOString().split('T')[0];
+
+    const activeStart = dr.preset === 'Till Today' ? earliestTxDate : (dr.startDate || earliestTxDate);
+    const activeEnd = dr.preset === 'Till Today' ? today : (dr.endDate || today);
+
+    const categories = Array.isArray(goal.targetCategories) ? goal.targetCategories : ['All Categories'];
+    const isAll = categories.includes('All Categories') || categories.length === 0;
+    const lowerCategories = categories.map(c => c.toLowerCase().trim());
+
+    const periodExpenses = transactions.filter(tx => {
+      if (!tx.date) return false;
+      const txDate = tx.date.split('T')[0];
+      const isExpense = !tx.type || tx.type.toLowerCase() === 'expense';
+      
+      if (!isExpense || txDate > activeEnd || txDate < activeStart) return false;
+      if (isAll) return true;
+      return lowerCategories.includes((tx.category || '').toLowerCase().trim());
+    });
+
+    const totalSpent = periodExpenses.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+
+    const start = new Date(activeStart);
+    const end = new Date(activeEnd);
+    const diffTime = Math.abs(end - start);
+    const daysCount = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    let totalDailyCap = 0;
+    if (isAll) {
+      totalDailyCap = Object.values(categoryCaps).reduce((sum, c) => sum + Number(c.cap || 0), 0);
+    } else {
+      Object.entries(categoryCaps).forEach(([catName, data]) => {
+        if (lowerCategories.includes(catName.toLowerCase().trim())) {
+          totalDailyCap += Number(data.cap || 0);
+        }
+      });
+    }
+
+    const totalBudget = totalDailyCap * daysCount;
+    return {
+      goalSaved: totalBudget - totalSpent,
+      activeStart,
+      activeEnd,
+      preset: dr.preset
+    };
+  };
+
+
+  // 3.5 End-of-Day Settlement Engine
+  useEffect(() => {
+    if (!isInitialized || goals.length === 0 || Object.keys(categoryCaps).length === 0) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastSettlementDate = localStorage.getItem('last_settlement_date');
+
+    if (lastSettlementDate && lastSettlementDate < today) {
+      const settle = async () => {
+        const prevSpent = {};
+        transactions.forEach(tx => {
+          if (!tx.date) return;
+          const txDate = tx.date.split('T')[0];
+          if (txDate === lastSettlementDate && (!tx.type || tx.type.toLowerCase() === 'expense')) {
+            const rawCat = tx.category || 'Other';
+            const normalizedCat = rawCat.trim().toLowerCase();
+            prevSpent[normalizedCat] = (prevSpent[normalizedCat] || 0) + Number(tx.amount || 0);
+          }
+        });
+
+        let globalPrevNetDailyRollover = 0;
+        Object.entries(categoryCaps).forEach(([cat, data]) => {
+          const normalizedCat = cat.trim().toLowerCase();
+          globalPrevNetDailyRollover += (data.cap - (prevSpent[normalizedCat] || 0));
+        });
+
+        const priority1Goal = goals.find(g => g.priorityRank === 1);
+        if (priority1Goal) {
+          let goalPrevNetDailyRollover = 0;
+          const tCats = priority1Goal.targetCategories || [];
+          if (tCats.length === 0 || tCats.includes('All Categories')) {
+             goalPrevNetDailyRollover = globalPrevNetDailyRollover;
+          } else {
+             Object.entries(categoryCaps).forEach(([cat, data]) => {
+                if (tCats.includes(cat)) {
+                   const normalizedCat = cat.trim().toLowerCase();
+                   goalPrevNetDailyRollover += (data.cap - (prevSpent[normalizedCat] || 0));
+                }
+             });
+          }
+
+          if (goalPrevNetDailyRollover > 0) {
+            const updatedGoal = { ...priority1Goal, currentAmount: priority1Goal.currentAmount + goalPrevNetDailyRollover };
+            
+            if (!isGuest) {
+              try {
+                const res = await fetch(`${API_BASE_URL}/goals/${priority1Goal.id}`, {
+                  method: 'PUT',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify(updatedGoal)
+                });
+                if (!res.ok) throw new Error("Failed to settle daily rollover");
+              } catch(e) {
+                console.error("Settlement error:", e);
+              }
+            }
+            setGoals(prev => prev.map(g => g.id === priority1Goal.id ? updatedGoal : g));
+          }
+        }
+        localStorage.setItem('last_settlement_date', today);
+      };
+      
+      settle();
+    } else if (!lastSettlementDate) {
+      localStorage.setItem('last_settlement_date', today);
+    }
+  }, [isInitialized, goals, transactions, categoryCaps, isGuest]);
+
 
 
   // 4. Persistence Handlers
@@ -347,7 +669,9 @@ const GoalsPage = ({ transactions = [] }) => {
       targetAmount: Number(newGoal.targetAmount) || 0,
       currentAmount: 0,
       categoryIcon: newGoal.categoryIcon || '🎯',
-      priorityRank: newRank
+      priorityRank: newRank,
+      targetCategories: newGoal.targetCategories || [],
+      dateRange: JSON.stringify({ preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] })
     };
 
     if (!isGuest) {
@@ -358,7 +682,23 @@ const GoalsPage = ({ transactions = [] }) => {
           body: JSON.stringify(goalPayload)
         });
         if (!res.ok) throw new Error();
-        const savedGoal = await res.json();
+        const savedGoalRaw = await res.json();
+        let parsedCats = savedGoalRaw.targetCategories;
+        if (typeof parsedCats === 'string') {
+           try { parsedCats = JSON.parse(parsedCats); }
+           catch(e) { parsedCats = parsedCats.split(',').map(c => c.trim()).filter(Boolean); }
+        }
+        if (!Array.isArray(parsedCats)) parsedCats = [];
+        let parsedDateRange = { preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] };
+        if (savedGoalRaw.dateRange) {
+           parsedDateRange = typeof savedGoalRaw.dateRange === 'string' ? JSON.parse(savedGoalRaw.dateRange) : savedGoalRaw.dateRange;
+        }
+        const savedGoal = { ...savedGoalRaw, targetCategories: parsedCats, dateRange: parsedDateRange };
+        
+        const existingSavedRanges = JSON.parse(localStorage.getItem('kosh_goal_date_ranges') || '{}');
+        existingSavedRanges[savedGoal.id] = parsedDateRange;
+        localStorage.setItem('kosh_goal_date_ranges', JSON.stringify(existingSavedRanges));
+        
         setGoals(prev => [...prev, savedGoal]);
       } catch (e) {
         showError("Failed to create goal in database.");
@@ -370,20 +710,39 @@ const GoalsPage = ({ transactions = [] }) => {
     }
 
     setAddGoalModalOpen(false);
-    setNewGoal({ name: '', targetAmount: '', categoryIcon: '🎯' });
+    setNewGoal({ name: '', targetAmount: '', categoryIcon: '🎯', targetCategories: [] });
   };
 
   const handleSaveEditedGoal = async () => {
     if (!isGuest) {
       try {
-        const payload = { ...editingGoal, priorityRank: Number(editingGoal.priorityRank) };
+        const payload = { 
+           ...editingGoal, 
+           priorityRank: Number(editingGoal.priorityRank),
+           dateRange: typeof editingGoal.dateRange === 'object' ? JSON.stringify(editingGoal.dateRange) : editingGoal.dateRange
+        };
         const res = await fetch(`${API_BASE_URL}/goals/${editingGoal.id}`, {
           method: 'PUT',
           headers: getAuthHeaders(),
           body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error();
-        const savedGoal = await res.json();
+        const savedGoalRaw = await res.json();
+        let parsedCats = savedGoalRaw.targetCategories;
+        if (typeof parsedCats === 'string') {
+           try { parsedCats = JSON.parse(parsedCats); }
+           catch(e) { parsedCats = parsedCats.split(',').map(c => c.trim()).filter(Boolean); }
+        }
+        if (!Array.isArray(parsedCats)) parsedCats = [];
+        let parsedDateRange = { preset: 'Till Today', startDate: '', endDate: new Date().toISOString().split('T')[0] };
+        if (savedGoalRaw.dateRange) {
+           parsedDateRange = typeof savedGoalRaw.dateRange === 'string' ? JSON.parse(savedGoalRaw.dateRange) : savedGoalRaw.dateRange;
+        }
+        const savedGoal = { ...savedGoalRaw, targetCategories: parsedCats, dateRange: parsedDateRange };
+
+        const existingSavedRanges = JSON.parse(localStorage.getItem('kosh_goal_date_ranges') || '{}');
+        existingSavedRanges[savedGoal.id] = parsedDateRange;
+        localStorage.setItem('kosh_goal_date_ranges', JSON.stringify(existingSavedRanges));
 
         setGoals(prev => {
           const prevGoals = [...prev];
@@ -484,7 +843,13 @@ const GoalsPage = ({ transactions = [] }) => {
   };
 
   const openEditModal = (goal) => {
-    setEditingGoal({ ...goal });
+    const initialCategories = Array.isArray(goal?.targetCategories) 
+      ? goal.targetCategories 
+      : (typeof goal?.targetCategories === 'string' && goal.targetCategories.length > 0)
+        ? [goal.targetCategories]
+        : ['All Categories'];
+
+    setEditingGoal({ ...goal, targetCategories: initialCategories });
     setEditGoalModalOpen(true);
   };
 
@@ -530,6 +895,78 @@ const GoalsPage = ({ transactions = [] }) => {
         </button>
       </div>
 
+      <div className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-xl overflow-hidden mb-2">
+        <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+              Period Savings Summary
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {filterMode === 'tillToday' 
+                ? `All Time till Today (${rangeSavings.activeEndDate})` 
+                : `${rangeSavings.activeStartDate} to ${rangeSavings.activeEndDate}`}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+             <select 
+               value={filterMode} 
+               onChange={(e) => setFilterMode(e.target.value)}
+               className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+             >
+               <option value="tillToday">Till Today</option>
+               <option value="custom">Custom Range</option>
+             </select>
+
+             <select 
+               value={selectedCategory} 
+               onChange={(e) => setSelectedCategory(e.target.value)}
+               className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+             >
+               <option value="All Categories">All Categories</option>
+               {uniqueCategories.map(cat => (
+                 <option key={cat} value={cat}>{cat}</option>
+               ))}
+             </select>
+             
+             {filterMode === 'custom' && (
+               <div className="flex items-center gap-2">
+                 <input 
+                   type="date" 
+                   value={startDate} 
+                   onChange={(e) => setStartDate(e.target.value)}
+                   className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+                 />
+                 <span className="text-slate-400">to</span>
+                 <input 
+                   type="date" 
+                   value={endDate} 
+                   onChange={(e) => setEndDate(e.target.value)}
+                   className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none"
+                 />
+               </div>
+             )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+          <div className="p-6 text-center">
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Budgeted</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalAllowed.toLocaleString()}</p>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">₹{rangeSavings.totalSpent.toLocaleString()}</p>
+          </div>
+          <div className="p-6 text-center bg-slate-50/50 dark:bg-slate-900/50">
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Total Saved</p>
+            <p className={`text-3xl font-black ${rangeSavings.totalSaved >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {rangeSavings.totalSaved >= 0 ? '+' : '-'}₹{Math.abs(rangeSavings.totalSaved).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-xl overflow-hidden">
         <div className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -571,9 +1008,9 @@ const GoalsPage = ({ transactions = [] }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <AnimatePresence>
                 {Object.entries(categoryCaps).map(([category, data]) => {
-                  const net = categoryNets[category];
+                  const spent = getCategorySpentToday(category);
+                  const net = data.cap - spent;
                   const isSurplus = net >= 0;
-                  const normalizedCat = category.trim().toLowerCase();
                   
                   return (
                     <motion.div 
@@ -629,7 +1066,7 @@ const GoalsPage = ({ transactions = [] }) => {
                         
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-slate-500 dark:text-slate-400">Spent Today</span>
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">₹{spentToday[normalizedCat] || 0}</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">₹{spent}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -662,10 +1099,16 @@ const GoalsPage = ({ transactions = [] }) => {
           <AnimatePresence>
             {sortedGoals.map((goal, index) => {
               const isPriority1 = index === 0;
-              let effectiveSaved = goal.currentAmount;
+              const goalRollover = getGoalDailyRollover(goal.targetCategories);
               
-              if (isPriority1) {
-                effectiveSaved = Math.max(0, goal.currentAmount + netDailyRollover);
+              const isolatedSavings = getIsolatedGoalSavings(goal);
+              const periodSavings = isolatedSavings.goalSaved;
+              
+              let effectiveSaved = goal.currentAmount;
+              if (isolatedSavings.preset === 'Custom Range') {
+                 effectiveSaved = Math.max(0, goal.currentAmount + periodSavings);
+              } else {
+                 effectiveSaved = Math.max(0, periodSavings);
               }
 
               const progressPercent = Math.min(100, (effectiveSaved / goal.targetAmount) * 100);
@@ -701,9 +1144,21 @@ const GoalsPage = ({ transactions = [] }) => {
                           <span className="text-3xl">{goal.categoryIcon}</span>
                           {goal.name}
                         </h3>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 mb-2">
                           Target: ₹{goal.targetAmount.toLocaleString()}
                         </p>
+                        <div className="flex flex-wrap gap-1">
+                          {(() => {
+                             const activeCategories = (Array.isArray(goal.targetCategories) && goal.targetCategories.length > 0 && !goal.targetCategories.includes('All Categories'))
+                               ? goal.targetCategories
+                               : ['All Categories'];
+                             return activeCategories.map((cat, idx) => (
+                               <span key={idx} className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${cat === 'All Categories' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
+                                 [{cat === 'All Categories' ? ' All Categories ' : `${categoryCaps[cat]?.icon || ''} ${cat}`}]
+                               </span>
+                             ));
+                          })()}
+                        </div>
                       </div>
                       
                       <div className="flex flex-col items-end gap-2">
@@ -748,19 +1203,62 @@ const GoalsPage = ({ transactions = [] }) => {
                     </div>
 
                     <div className="mt-auto">
+                      <div className="mb-4 bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                        <select 
+                          value={goal.dateRange?.preset || 'Till Today'} 
+                          onChange={(e) => updateGoalDateRange(goal.id, { preset: e.target.value })}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-xs font-medium px-2 py-1 outline-none mb-2"
+                        >
+                          <option value="Till Today">Till Today</option>
+                          <option value="Custom Range">Custom Range</option>
+                        </select>
+                        {goal.dateRange?.preset === 'Custom Range' && (
+                          <div className="flex gap-2">
+                            <input 
+                              type="date" 
+                              value={goal.dateRange.startDate || isolatedSavings.activeStart} 
+                              onChange={(e) => updateGoalDateRange(goal.id, { startDate: e.target.value })}
+                              className="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-[10px] px-1.5 py-1 outline-none"
+                            />
+                            <input 
+                              type="date" 
+                              value={goal.dateRange.endDate || isolatedSavings.activeEnd} 
+                              onChange={(e) => updateGoalDateRange(goal.id, { endDate: e.target.value })}
+                              className="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-[10px] px-1.5 py-1 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mb-5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                        <div className="flex justify-between items-center mb-1">
+                           <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                             {isolatedSavings.preset === 'Custom Range' ? 'Saved in Period' : 'Saved Till Today'}
+                           </span>
+                           <span className={`text-sm font-black ${periodSavings >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                             {periodSavings >= 0 ? '+' : '-'}₹{Math.abs(periodSavings).toLocaleString()}
+                           </span>
+                        </div>
+                        <div className="text-[10px] font-semibold text-slate-400">
+                           {isolatedSavings.preset === 'Custom Range' 
+                              ? `${isolatedSavings.activeStart} to ${isolatedSavings.activeEnd}` 
+                              : `All Time till ${isolatedSavings.activeEnd}`}
+                        </div>
+                      </div>
+
                       <div className="mb-3 flex items-end gap-3">
                         <div>
                           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
-                            Current Balance
+                            {isolatedSavings.preset === 'Custom Range' ? 'Savings in Selected Period' : 'Current Balance'}
                           </span>
                           <span className={`font-black text-slate-900 dark:text-white ${isPriority1 ? 'text-4xl' : 'text-2xl'}`}>
                             ₹{effectiveSaved.toLocaleString()}
                           </span>
                         </div>
                         
-                        {isPriority1 && netDailyRollover !== 0 && (
-                          <div className={`mb-1.5 px-2 py-0.5 rounded text-xs font-bold ${netDailyRollover > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}>
-                            {netDailyRollover > 0 ? '+' : '-'}₹{Math.abs(netDailyRollover)} today
+                        {isPriority1 && goalRollover !== 0 && (
+                          <div className={`mb-1.5 px-2 py-0.5 rounded text-xs font-bold ${goalRollover > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}>
+                            Includes {goalRollover > 0 ? '+' : '-'}₹{Math.abs(goalRollover)} pending rollover for today
                           </div>
                         )}
                       </div>
@@ -785,11 +1283,11 @@ const GoalsPage = ({ transactions = [] }) => {
                     </div>
                     
                     {/* Penalty Alert */}
-                    {isPriority1 && netDailyRollover < 0 && (
+                    {isPriority1 && goalRollover < 0 && (
                       <div className="mt-6 flex items-start gap-3 p-3 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50">
                         <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
                         <p className="text-xs font-semibold text-rose-700 dark:text-rose-400">
-                          Goal Penalty Applied: -₹{Math.abs(netDailyRollover)} deducted today due to overspending.
+                          Goal Penalty Applied: -₹{Math.abs(goalRollover)} deducted today due to overspending in linked categories.
                         </p>
                       </div>
                     )}
@@ -860,6 +1358,52 @@ const GoalsPage = ({ transactions = [] }) => {
                     onChange={(e) => setNewGoal(prev => ({ ...prev, categoryIcon: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                     <button
+                        onClick={() => {
+                           setNewGoal(prev => ({ ...prev, targetCategories: ['All Categories'] }));
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                           newGoal.targetCategories.includes('All Categories') || newGoal.targetCategories.length === 0
+                              ? 'bg-indigo-500 text-white shadow-md'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                        }`}
+                     >
+                        All Categories
+                     </button>
+                     {uniqueCategories.map(cat => {
+                        const isSelected = newGoal.targetCategories.includes(cat);
+                        return (
+                           <button
+                              key={cat}
+                              onClick={() => {
+                                 setNewGoal(prev => {
+                                    let current = Array.isArray(prev.targetCategories) ? [...prev.targetCategories] : [];
+                                    current = current.filter(c => c !== 'All Categories');
+                                    if (current.includes(cat)) {
+                                      current = current.filter(c => c !== cat);
+                                    } else {
+                                      current.push(cat);
+                                    }
+                                    if (current.length === 0) current = ['All Categories'];
+                                    return { ...prev, targetCategories: current };
+                                 });
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                 isSelected
+                                    ? 'bg-blue-500 text-white shadow-md'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                              }`}
+                           >
+                              {cat}
+                           </button>
+                        );
+                     })}
+                  </div>
                 </div>
               </div>
               
@@ -952,6 +1496,52 @@ const GoalsPage = ({ transactions = [] }) => {
                       <option key={i+1} value={i+1}>Priority #{i+1}</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                     <button
+                        onClick={() => {
+                           setEditingGoal(prev => ({ ...prev, targetCategories: ['All Categories'] }));
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                           (editingGoal.targetCategories || []).includes('All Categories') || (editingGoal.targetCategories || []).length === 0
+                              ? 'bg-indigo-500 text-white shadow-md'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                        }`}
+                     >
+                        All Categories
+                     </button>
+                     {uniqueCategories.map(cat => {
+                        const isSelected = (editingGoal.targetCategories || []).includes(cat);
+                        return (
+                           <button
+                              key={cat}
+                              onClick={() => {
+                                 setEditingGoal(prev => {
+                                    let current = Array.isArray(prev.targetCategories) ? [...prev.targetCategories] : [];
+                                    current = current.filter(c => c !== 'All Categories');
+                                    if (current.includes(cat)) {
+                                      current = current.filter(c => c !== cat);
+                                    } else {
+                                      current.push(cat);
+                                    }
+                                    if (current.length === 0) current = ['All Categories'];
+                                    return { ...prev, targetCategories: current };
+                                 });
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                 isSelected
+                                    ? 'bg-blue-500 text-white shadow-md'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                              }`}
+                           >
+                              {cat}
+                           </button>
+                        );
+                     })}
+                  </div>
                 </div>
               </div>
               

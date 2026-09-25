@@ -63,6 +63,7 @@ public class GoalController {
         existing.setCurrentAmount(goalDetails.getCurrentAmount());
         existing.setCategoryIcon(goalDetails.getCategoryIcon());
         existing.setPriorityRank(goalDetails.getPriorityRank());
+        existing.setTargetCategories(goalDetails.getTargetCategories());
         
         return ResponseEntity.ok(goalRepository.save(existing));
     }
