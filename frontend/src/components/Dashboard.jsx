@@ -110,7 +110,9 @@ const Dashboard = ({ onLogout, userId }) => {
       return null;
     }
   });
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('kosh_active_tab') || 'dashboard';
+  });
   const [dateFilter, setDateFilter] = useState('ALL');
   const [transactions, setTransactions] = useState([]);
   const [topCategory, setTopCategory] = useState(null);
@@ -281,6 +283,7 @@ const Dashboard = ({ onLogout, userId }) => {
     
     // Switch view back to main dashboard tab
     setActiveTab('dashboard');
+    localStorage.setItem('kosh_active_tab', 'dashboard');
     
     // Trigger success notification for the transition to Guest Demo
     addNotification({
@@ -1232,7 +1235,10 @@ const Dashboard = ({ onLogout, userId }) => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  localStorage.setItem('kosh_active_tab', tab.id);
+                }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full ${
                   activeTab === tab.id
                     ? 'bg-blue-600 text-white font-semibold shadow-md'

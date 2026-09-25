@@ -35,6 +35,7 @@ const GoalsPage = ({ transactions = [] }) => {
 
   const [isEditGoalModalOpen, setEditGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
+  const [customGoalCategoryInput, setCustomGoalCategoryInput] = useState('');
 
   const [isAddAllowanceModalOpen, setAddAllowanceModalOpen] = useState(false);
   const [newAllowance, setNewAllowance] = useState({ category: '', customCategory: '', amount: '', icon: '✨' });
@@ -63,22 +64,38 @@ const GoalsPage = ({ transactions = [] }) => {
   };
 
   // 1. Dynamic Unique Categories Extraction
-  const uniqueCategories = useMemo(() => {
-    const defaultCategories = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Shopping', 'Other'];
-    if (!transactions || transactions.length === 0) return defaultCategories;
+  const getAvailableCategories = useMemo(() => {
+    const defaultCategories = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Income', 'Other'];
+    const cats = new Set(defaultCategories);
     
-    const cats = new Set();
-    transactions.forEach(tx => {
-      if (tx.category && tx.category.trim()) {
-        cats.add(tx.category.trim());
-      }
-    });
-    
-    if (cats.size === 0) return defaultCategories;
-    
-    defaultCategories.forEach(c => cats.add(c));
+    if (transactions && transactions.length > 0) {
+      transactions.forEach(tx => {
+        if (tx.category && tx.category.trim()) {
+          const cat = tx.category.trim();
+          cats.add(cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase());
+        }
+      });
+    }
+
+    if (categoryCaps) {
+      Object.keys(categoryCaps).forEach(cat => {
+        cats.add(cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase());
+      });
+    }
+
+    try {
+      const localCats = JSON.parse(localStorage.getItem('kosh_custom_categories') || '[]');
+      localCats.forEach(cat => {
+         if (typeof cat === 'string' && cat.trim()) {
+            cats.add(cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase());
+         }
+      });
+    } catch (e) {}
+
     return Array.from(cats).sort();
-  }, [transactions]);
+  }, [transactions, categoryCaps]);
+
+  const uniqueCategories = getAvailableCategories;
 
 
   // 2. Initial Data Load
@@ -1362,6 +1379,40 @@ const GoalsPage = ({ transactions = [] }) => {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                  
+                  <div className="flex gap-2 mb-3">
+                    <input 
+                      type="text"
+                      placeholder="Add custom category..."
+                      value={customGoalCategoryInput}
+                      onChange={(e) => setCustomGoalCategoryInput(e.target.value)}
+                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+                    />
+                    <button 
+                      onClick={() => {
+                        const val = customGoalCategoryInput.trim();
+                        if (val) {
+                          const formatted = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+                          const localCats = JSON.parse(localStorage.getItem('kosh_custom_categories') || '[]');
+                          if (!localCats.includes(formatted)) {
+                            localCats.push(formatted);
+                            localStorage.setItem('kosh_custom_categories', JSON.stringify(localCats));
+                          }
+                          setNewGoal(prev => {
+                            let current = Array.isArray(prev.targetCategories) ? [...prev.targetCategories] : [];
+                            current = current.filter(c => c !== 'All Categories');
+                            if (!current.includes(formatted)) current.push(formatted);
+                            return { ...prev, targetCategories: current };
+                          });
+                          setCustomGoalCategoryInput('');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                      <button
                         onClick={() => {
@@ -1500,6 +1551,40 @@ const GoalsPage = ({ transactions = [] }) => {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Target Categories</label>
+                  
+                  <div className="flex gap-2 mb-3">
+                    <input 
+                      type="text"
+                      placeholder="Add custom category..."
+                      value={customGoalCategoryInput}
+                      onChange={(e) => setCustomGoalCategoryInput(e.target.value)}
+                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+                    />
+                    <button 
+                      onClick={() => {
+                        const val = customGoalCategoryInput.trim();
+                        if (val) {
+                          const formatted = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+                          const localCats = JSON.parse(localStorage.getItem('kosh_custom_categories') || '[]');
+                          if (!localCats.includes(formatted)) {
+                            localCats.push(formatted);
+                            localStorage.setItem('kosh_custom_categories', JSON.stringify(localCats));
+                          }
+                          setEditingGoal(prev => {
+                            let current = Array.isArray(prev.targetCategories) ? [...prev.targetCategories] : [];
+                            current = current.filter(c => c !== 'All Categories');
+                            if (!current.includes(formatted)) current.push(formatted);
+                            return { ...prev, targetCategories: current };
+                          });
+                          setCustomGoalCategoryInput('');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                      <button
                         onClick={() => {
