@@ -4,6 +4,13 @@
 
 /* Custom base styles */
 @layer base {
+  :root {
+    --dot-glow: #ffffff;
+  }
+  .dark {
+    --dot-glow: #120F17;
+  }
+
   body {
     @apply bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen;
   }

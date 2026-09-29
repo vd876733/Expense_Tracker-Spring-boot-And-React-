@@ -39,6 +39,7 @@ import SettlementPage from './SettlementPage';
 import BudgetSection from './BudgetSection';
 import Login from './Login';
 import GoalsPage from './GoalsPage';
+import DotField from './DotField';
 const demoData = {
   transactions: [
     { id: 'd1', description: 'Whole Foods Market', amount: 145.20, date: new Date().toISOString(), category: 'Food', type: 'expense' },
@@ -1267,8 +1268,24 @@ const Dashboard = ({ onLogout, userId }) => {
       </div>
 
       {/* Main Content Body */}
-      <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex-1 overflow-y-auto p-8 relative">
+        <div className="fixed top-0 bottom-0 right-0 left-0 md:left-64 pointer-events-none z-0">
+          <DotField
+            dotRadius={1.5}
+            dotSpacing={14}
+            bulgeStrength={67}
+            glowRadius={160}
+            sparkle={false}
+            waveAmplitude={0}
+            cursorRadius={500}
+            cursorForce={0.1}
+            bulgeOnly
+            gradientFrom="#A855F7"
+            gradientTo="#B497CF"
+            glowColor="var(--dot-glow)"
+          />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           {/* Demo Mode Banner */}
           {!isAuthenticated && (
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl flex items-center justify-between mb-4 shadow-md flex-col sm:flex-row gap-3 text-center sm:text-left sticky top-0 z-20">
