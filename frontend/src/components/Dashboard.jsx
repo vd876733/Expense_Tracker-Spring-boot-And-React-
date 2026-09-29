@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, deleteBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById, getUserCategories, addCategory } from '../services/api';
-import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
+import { getTransactions, getFilteredTransactions, addTransaction, deleteTransaction, getBudgetAnalyses, getBudgetAnalysesByUsername, getAiInsights, resetBudgetsByUser, createBudget, updateBudget, deleteBudget, getCurrentMonthCategoryTotals, getDailySpendingChartData, updateUserIncome, getTransactionHistoryById, getUserCategories, addCategory, exportTransactionsCsv } from '../services/api';
+import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users, Download } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import Grainient from './Grainient';
@@ -858,6 +858,38 @@ const Dashboard = ({ onLogout, userId }) => {
     } catch (err) {
       toast.error('Failed to fetch transaction history');
       console.error(err);
+    }
+  };
+
+  const handleExportCsv = () => {
+    try {
+      if (!transactions || transactions.length === 0) {
+        toast.info('No transactions to export.');
+        return;
+      }
+      
+      const csvHeaders = ['Date', 'Description', 'Category', 'Amount'];
+      const csvRows = transactions.map(t => {
+        const date = t.date ? new Date(t.date).toISOString().split('T')[0] : '';
+        const desc = `"${(t.description || '').replace(/"/g, '""')}"`;
+        const cat = `"${(t.category || '').replace(/"/g, '""')}"`;
+        return `${date},${desc},${cat},${t.amount}`;
+      });
+      
+      const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'transactions.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Exported successfully!');
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      toast.error('Failed to export CSV. Please try again.');
     }
   };
 
@@ -1923,6 +1955,13 @@ const Dashboard = ({ onLogout, userId }) => {
             className="px-8 py-3 text-lg font-semibold rounded-lg border border-indigo-500 text-indigo-700 bg-white hover:bg-indigo-50 transition-shadow"
           >
             Set Budget
+          </button>
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-2 px-8 py-3 text-lg font-semibold rounded-lg border border-green-500 text-green-700 bg-white hover:bg-green-50 transition-shadow dark:bg-slate-800 dark:text-green-400 dark:hover:bg-slate-700"
+          >
+            <Download size={20} />
+            Export CSV
           </button>
         </div>
             

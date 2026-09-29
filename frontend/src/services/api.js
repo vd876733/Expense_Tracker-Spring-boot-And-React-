@@ -18,6 +18,7 @@ const API_ROUTES = {
   budgetsByUser: (userId) => `/budgets/user/${userId}`,
   budgetsAnalysis: (userId) => `/budgets/analysis?userId=${encodeURIComponent(userId)}`,
   importCsv: '/import/transactions/csv',
+  exportCsv: '/export/csv',
   importTemplate: '/import/transactions/csv-template',
   importInstructions: '/import/transactions/csv-instructions',
   aiInsights: '/ai/insights',
@@ -831,6 +832,18 @@ export const addCategory = async (name, options = {}) => {
     return response.data;
   } catch (error) {
     console.error('Error creating custom category:', error);
+    throw error;
+  }
+};
+
+export const exportTransactionsCsv = async () => {
+  try {
+    const response = await apiClient.get(API_ROUTES.exportCsv, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API Error exporting CSV:', error);
     throw error;
   }
 };

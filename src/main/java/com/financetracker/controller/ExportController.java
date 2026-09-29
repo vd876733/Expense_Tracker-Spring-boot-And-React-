@@ -112,6 +112,47 @@ public class ExportController {
                 .body(bytes);
     }
 
+    @GetMapping(value = "/csv", produces = "text/csv")
+    public ResponseEntity<byte[]> exportCurrentMonthTransactionsCsv() {
+        YearMonth currentMonth = YearMonth.now();
+        List<Transaction> transactions = transactionRepository.findByMonthAndYear(
+                currentMonth.getMonthValue(), currentMonth.getYear());
+
+        StringBuilder csvContent = new StringBuilder();
+        csvContent.append("Date,Description,Category,Amount\n");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (Transaction transaction : transactions) {
+            csvContent.append(transaction.getDate().format(dateFormatter)).append(",")
+                    .append(escapeSpecialCharacters(transaction.getDescription())).append(",")
+                    .append(escapeSpecialCharacters(transaction.getCategory())).append(",")
+                    .append(transaction.getAmount()).append("\n");
+        }
+
+        byte[] bytes = csvContent.toString().getBytes();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData(
+                "attachment",
+                String.format("expense-report-%d-%d.csv", currentMonth.getMonthValue(), currentMonth.getYear())
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(bytes);
+    }
+
+    private String escapeSpecialCharacters(String data) {
+        if (data == null) return "";
+        String escapedData = data.replaceAll("\\R", " ");
+        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
+            data = data.replace("\"", "\"\"");
+            escapedData = "\"" + data + "\"";
+        }
+        return escapedData;
+    }
+
     private void addCell(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setPadding(8);
