@@ -1199,7 +1199,7 @@ const Dashboard = ({ onLogout, userId }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0A1128] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div 
@@ -1280,8 +1280,8 @@ const Dashboard = ({ onLogout, userId }) => {
             cursorRadius={500}
             cursorForce={0.1}
             bulgeOnly
-            gradientFrom="#A855F7"
-            gradientTo="#B497CF"
+            gradientFrom="#1D4ED8"
+            gradientTo="#3B82F6"
             glowColor="var(--dot-glow)"
           />
         </div>
