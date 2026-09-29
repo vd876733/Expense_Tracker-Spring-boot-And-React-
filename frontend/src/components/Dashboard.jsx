@@ -5,6 +5,7 @@ import { getTransactions, getFilteredTransactions, addTransaction, deleteTransac
 import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowRightLeft, PieChart, Wallet, Target, FileText, Settings, Search, Bell, Zap, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import Grainient from './Grainient';
 import {
   Dialog,
   DialogTitle,
@@ -1209,9 +1210,37 @@ const Dashboard = ({ onLogout, userId }) => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-900 text-slate-300 p-6 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div>
-          {/* Branding Header */}
+      <div className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-800/20 text-slate-300 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 overflow-hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="absolute inset-0 z-0">
+          <Grainient
+            color1="#000000"
+            color2="#172554"
+            color3="#0A1128"
+            timeSpeed={0.25}
+            colorBalance={0}
+            warpStrength={1}
+            warpFrequency={5}
+            warpSpeed={2}
+            warpAmplitude={50}
+            blendAngle={0}
+            blendSoftness={0.05}
+            rotationAmount={500}
+            noiseScale={2}
+            grainAmount={0.1}
+            grainScale={2}
+            grainAnimated={false}
+            contrast={1.5}
+            gamma={1}
+            saturation={1}
+            centerX={0}
+            centerY={0}
+            zoom={0.9}
+          />
+        </div>
+        
+        <div className="relative z-10 flex flex-col h-full justify-between p-6 w-full">
+          <div>
+            {/* Branding Header */}
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-indigo-500 p-2 rounded-lg">
               <TrendingUp className="h-6 w-6 text-white" />
@@ -1265,6 +1294,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </p>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Main Content Body */}
@@ -1486,23 +1516,7 @@ const Dashboard = ({ onLogout, userId }) => {
             </p>
           </div>
           <div className="flex items-center flex-wrap md:flex-nowrap gap-2">
-
-            <button
-              onClick={() => navigate('/settlements')}
-              className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-semibold transition-all duration-200 shadow-sm"
-              title="Group Settlements"
-            >
-              <HandCoins size={18} className="text-indigo-500" />
-              <span>Settlements</span>
-            </button>
-            <button
-              onClick={() => navigate('/insights')}
-              className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-sm"
-              title="View Financial Insights"
-            >
-              <TrendingUp size={18} />
-              <span>Insights</span>
-            </button>
+            {/* Action buttons removed as requested */}
           </div>
         </div>
 
