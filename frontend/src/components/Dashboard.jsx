@@ -2301,18 +2301,18 @@ const Dashboard = ({ onLogout, userId }) => {
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
           <div className="mb-8">
-            <div className="bg-slate-900/60 border border-white/10 p-8 rounded-2xl shadow-sm text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">Admin Portal & Security</h2>
-              <p className="text-slate-400 mb-6">Switch to administrative mode to monitor active user sessions, view real-time audit logs, and manage system permissions.</p>
+            <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-md rounded-2xl p-6 text-slate-800 dark:bg-slate-900/60 dark:border-white/10 dark:text-white dark:shadow-none text-center">
+              <h2 className="text-slate-900 dark:text-white font-bold text-xl mb-2">Admin Portal & Security</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xl mx-auto mb-6">Switch to administrative mode to monitor active user sessions, view real-time audit logs, and manage system permissions.</p>
               
               <button 
                 onClick={() => {
                   handleLogout();
                   navigate('/admin/login');
                 }}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md inline-flex items-center gap-2"
+                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-medium px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 Switch to Admin

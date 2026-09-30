@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Shield, ArrowRight, ArrowLeft, Sun, Moon } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const AdminLogin = () => {
@@ -8,7 +8,19 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') !== 'light';
+  });
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -44,16 +56,35 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#070a12' }}>
-      <div className="w-full max-w-md p-8 rounded-2xl shadow-2xl border border-slate-800" style={{ backgroundColor: '#0b1329' }}>
+    <div className={`min-h-screen flex flex-col items-center justify-center transition-colors ${isDarkMode ? 'bg-[#070a12]' : 'bg-slate-50'}`}>
+      
+      {/* Theme Toggle Button */}
+      <div className="absolute top-6 right-6">
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${
+            isDarkMode 
+              ? 'text-amber-400 hover:bg-slate-800' 
+              : 'text-indigo-600 hover:bg-slate-200'
+          }`}
+        >
+          {isDarkMode ? (
+            <><Sun size={18} /> Light Mode</>
+          ) : (
+            <><Moon size={18} /> Dark Mode</>
+          )}
+        </button>
+      </div>
+
+      <div className={`w-full max-w-md p-8 rounded-2xl shadow-2xl border transition-colors ${isDarkMode ? 'border-slate-800 bg-[#0b1329]' : 'border-slate-200 bg-white'}`}>
         
         {/* Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="bg-blue-600/20 p-4 rounded-full mb-4">
+          <div className={`p-4 rounded-full mb-4 ${isDarkMode ? 'bg-blue-600/20' : 'bg-blue-100'}`}>
             <Shield className="w-10 h-10 text-blue-500" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Admin Portal Access</h1>
-          <p className="text-slate-400 text-sm">Admin Authentication Required</p>
+          <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Admin Portal Access</h1>
+          <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Admin Authentication Required</p>
         </div>
 
         {/* Error Alert */}
@@ -66,7 +97,7 @@ const AdminLogin = () => {
         {/* Login Form */}
         <form onSubmit={handleAdminLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
               Admin Email
             </label>
             <input
@@ -74,13 +105,17 @@ const AdminLogin = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-[#070a12] border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+              className={`w-full px-4 py-2.5 rounded-xl border transition-colors outline-none ${
+                isDarkMode 
+                  ? 'bg-slate-900/90 text-white border-slate-700 placeholder-slate-500 focus:border-blue-500' 
+                  : 'bg-slate-100 text-slate-900 border-slate-300 placeholder-slate-400 focus:border-blue-600'
+              }`}
               placeholder="admin@kosh.app"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
               Password
             </label>
             <input
@@ -88,7 +123,11 @@ const AdminLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-[#070a12] border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+              className={`w-full px-4 py-2.5 rounded-xl border transition-colors outline-none ${
+                isDarkMode 
+                  ? 'bg-slate-900/90 text-white border-slate-700 placeholder-slate-500 focus:border-blue-500' 
+                  : 'bg-slate-100 text-slate-900 border-slate-300 placeholder-slate-400 focus:border-blue-600'
+              }`}
               placeholder="••••••••"
             />
           </div>
@@ -106,8 +145,11 @@ const AdminLogin = () => {
         {/* Footer Link */}
         <div className="mt-8 text-center">
           <button
+            type="button"
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+            className={`inline-flex items-center gap-2 text-sm transition-colors ${
+              isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+            }`}
           >
             <ArrowLeft className="w-4 h-4" />
             Return to User Login

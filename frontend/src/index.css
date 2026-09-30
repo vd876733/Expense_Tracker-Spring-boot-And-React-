@@ -10,6 +10,13 @@
   .dark {
     --dot-glow: #0A1128;
   }
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover, 
+  .dark input:-webkit-autofill:focus, 
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px #0f172a inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
 
   body {
     @apply bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen;
