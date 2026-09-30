@@ -10,6 +10,8 @@ const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 const InsightsPage = lazy(() => import('./components/InsightsPage'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
+const AdminLogin = lazy(() => import('./components/AdminLogin'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -29,6 +31,8 @@ function App() {
           <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
             <Routes>
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/register" element={<Register setToken={setToken} setUserId={setUserId} />} />
               <Route
                 path="/dashboard"

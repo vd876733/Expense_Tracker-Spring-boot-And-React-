@@ -1,6 +1,7 @@
 com\financetracker\controller\CategoryController.class
 com\financetracker\controller\SavingsGoalController.class
 com\financetracker\repository\RecurringTransactionRepository.class
+com\financetracker\entity\Admin.class
 com\financetracker\entity\Transaction.class
 com\financetracker\service\DebtCalculationService$Debt.class
 com\financetracker\dto\DailySpendingDTO.class
@@ -9,6 +10,7 @@ com\financetracker\controller\UserController.class
 com\financetracker\dto\AuditDTO.class
 com\financetracker\repository\UserCategoryRepository.class
 com\financetracker\controller\GoalController.class
+com\financetracker\repository\UserLoginHistoryRepository.class
 com\financetracker\service\EmailReminderService.class
 com\financetracker\entity\GroupExpense.class
 com\financetracker\repository\CategoryCapRepository.class
@@ -29,11 +31,13 @@ com\financetracker\service\AiInsightsService.class
 com\financetracker\controller\TransactionController.class
 com\financetracker\controller\TransactionController$1.class
 com\financetracker\entity\Goal.class
+com\financetracker\controller\AdminController.class
 com\financetracker\controller\BudgetController.class
 com\financetracker\dto\MonthlyIncomeExpenseDTO.class
 com\financetracker\controller\ImportController.class
 com\financetracker\repository\ExpenseGroupRepository.class
 com\financetracker\entity\UserCategory.class
+com\financetracker\repository\AdminRepository.class
 com\financetracker\config\WebConfig.class
 com\financetracker\repository\GoalRepository.class
 com\financetracker\entity\Budget.class
@@ -51,6 +55,7 @@ com\financetracker\controller\AuthController.class
 com\financetracker\service\DebtCalculationService.class
 com\financetracker\controller\CategoryCapController.class
 com\financetracker\controller\AIInsightsController.class
+com\financetracker\dto\AdminAuthRequest.class
 com\financetracker\dto\GroupInviteRequest.class
 com\financetracker\repository\GroupExpenseRepository.class
 com\financetracker\service\BudgetService.class
@@ -75,6 +80,7 @@ com\financetracker\dto\JwtAuthenticationResponse.class
 com\financetracker\security\TokenProvider.class
 com\financetracker\repository\BudgetRepository.class
 com\financetracker\entity\User.class
+com\financetracker\entity\UserLoginHistory.class
 com\financetracker\service\ImportService.class
 com\financetracker\service\SmsService.class
 com\financetracker\dto\CategorySpendingComparisonDTO.class

@@ -24,6 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.servlet.http.HttpServletRequest;
+import com.financetracker.entity.UserLoginHistory;
+import com.financetracker.repository.UserLoginHistoryRepository;
+import java.time.LocalDateTime;
 
 /**
  * Authentication Controller
@@ -47,6 +51,9 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserLoginHistoryRepository userLoginHistoryRepository;
+
     /**
      * Authenticate user and return JWT token
      *
@@ -54,7 +61,7 @@ public class AuthController {
      * @return JWT token
      */
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -70,6 +77,20 @@ public class AuthController {
             responseBody.put("token", token);
             responseBody.put("accessToken", token);
             if (user != null) {
+                // Record login history
+                UserLoginHistory loginHistory = new UserLoginHistory();
+                loginHistory.setUser(user);
+                loginHistory.setLoginTimestamp(LocalDateTime.now());
+                loginHistory.setIpAddress(request.getRemoteAddr());
+                // In a stateless JWT app, tracking active sessions precisely requires a token store.
+                // We'll set a placeholder or count recent logins for now.
+                int recentLogins = userLoginHistoryRepository.countByUserId(user.getId());
+                loginHistory.setUserActiveSessionsCount(recentLogins > 0 ? 1 : 1);
+                userLoginHistoryRepository.save(loginHistory);
+
+                user.setLastLoginAt(LocalDateTime.now());
+                userRepository.save(user);
+
                 responseBody.put("userId", user.getId());
                 responseBody.put("username", user.getUsername());
                 responseBody.put("email", user.getEmail());

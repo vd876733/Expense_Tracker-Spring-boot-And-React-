@@ -83,9 +83,6 @@ public class TokenProvider {
                 .compact();
     }
 
-    /**
-     * Generate a JWT token from username and email (for OAuth2)
-     */
     public String generateTokenFromUsernameAndEmail(String username, String email) {
         String subject = (username != null && !username.isBlank()) ? username : email;
         if (subject == null || subject.isBlank()) {
@@ -98,6 +95,26 @@ public class TokenProvider {
         return Jwts.builder()
                 .setSubject(subject)
                 .claim("email", email != null ? email.trim().toLowerCase() : null)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(signingKey)
+                .compact();
+    }
+
+    /**
+     * Generate a JWT token for Admin
+     */
+    public String generateAdminToken(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email cannot be null or empty for JWT generation");
+        }
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("role", "admin")
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(signingKey)
@@ -119,6 +136,15 @@ public class TokenProvider {
         Claims claims = getAllClaimsFromToken(token);
         Object emailClaim = claims.get("email");
         return emailClaim != null ? emailClaim.toString() : null;
+    }
+
+    /**
+     * Get role from JWT token claims
+     */
+    public String getRoleFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        Object roleClaim = claims.get("role");
+        return roleClaim != null ? roleClaim.toString() : null;
     }
 
     /**

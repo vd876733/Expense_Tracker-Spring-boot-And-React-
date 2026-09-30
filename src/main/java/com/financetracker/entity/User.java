@@ -40,10 +40,13 @@ public class User {
     @Column(name = "total_income")
     private Double totalIncome = 0.0; // Default to 0.0 to prevent NullPointer
 
+    @Column(name = "role")
+    private String role = "user";
+
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -156,5 +159,13 @@ public class User {
 
     public void setSavingsGoals(List<SavingsGoal> savingsGoals) {
         this.savingsGoals = savingsGoals;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

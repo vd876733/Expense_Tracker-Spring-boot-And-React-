@@ -303,6 +303,11 @@ const Dashboard = ({ onLogout, userId }) => {
     toast.info("Signed out. Returning to Guest Mode.");
   }, [onLogout, addNotification]);
 
+  const handleSwitchToAdmin = useCallback(() => {
+    handleLogout();
+    navigate('/admin/login');
+  }, [handleLogout, navigate]);
+
   // Filter state
   const [filters, setFilters] = useState({
     month: null,
@@ -1472,14 +1477,22 @@ const Dashboard = ({ onLogout, userId }) => {
               </div>
             )}
 
-            {/* Prominent Sign In Button */}
+            {/* Prominent Sign In Button and Admin Sign In */}
             {!isAuthenticated && (
-              <button 
-                onClick={() => setShowAuthModal(true)} 
-                className="hidden sm:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
-              >
-                Sign In
-              </button>
+              <div className="flex gap-2 items-center">
+                <button 
+                  onClick={() => navigate('/admin/login')} 
+                  className="hidden sm:block border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-600 dark:hover:text-white"
+                >
+                  Admin Sign In
+                </button>
+                <button 
+                  onClick={() => setShowAuthModal(true)} 
+                  className="hidden sm:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
+                >
+                  Sign In
+                </button>
+              </div>
             )}
             {googleUser || !isAuthenticated ? (
               <div className="flex items-center gap-3 rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1 shadow-sm border border-slate-200 dark:border-slate-700">
@@ -1508,6 +1521,13 @@ const Dashboard = ({ onLogout, userId }) => {
                     </button>
                   ) : (
                     <>
+                      <button
+                        type="button"
+                        onClick={handleSwitchToAdmin}
+                        className="text-left text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors leading-tight mb-1.5"
+                      >
+                        Switch to Admin
+                      </button>
                       <button
                         type="button"
                         onClick={handleLogout}
@@ -2280,9 +2300,24 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Settings</h2>
-            <p className="text-gray-500 dark:text-gray-400">Account settings coming soon.</p>
+          <div className="mb-8">
+            <div className="bg-slate-900/60 border border-white/10 p-8 rounded-2xl shadow-sm text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">Admin Portal & Security</h2>
+              <p className="text-slate-400 mb-6">Switch to administrative mode to monitor active user sessions, view real-time audit logs, and manage system permissions.</p>
+              
+              <button 
+                onClick={() => {
+                  handleLogout();
+                  navigate('/admin/login');
+                }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md inline-flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Switch to Admin
+              </button>
+            </div>
           </div>
         )}
 

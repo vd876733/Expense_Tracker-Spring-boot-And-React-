@@ -81,15 +81,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromToken(jwt);
                 String email = tokenProvider.getEmailFromToken(jwt);  // Extract email from JWT claims
+                String role = tokenProvider.getRoleFromToken(jwt);
                 
-                System.out.println("[JWT_FILTER] Token is valid. Username: " + username + ", Email: " + email);
+                System.out.println("[JWT_FILTER] Token is valid. Username: " + username + ", Email: " + email + ", Role: " + role);
+
+                java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+                if (role != null) {
+                    String roleName = role.toUpperCase();
+                    if (!roleName.startsWith("ROLE_")) {
+                        roleName = "ROLE_" + roleName;
+                    }
+                    authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(roleName));
+                }
 
                 // Create authentication token
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,
-                                new ArrayList<>() // Empty authorities for this example
+                                authorities
                         );
 
                 // Store both username and email in details for later retrieval
