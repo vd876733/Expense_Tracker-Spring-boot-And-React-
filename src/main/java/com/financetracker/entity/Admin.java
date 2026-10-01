@@ -18,7 +18,7 @@ public class Admin {
     private String email;
 
     @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    private String password;
 
     @Column(name = "role", nullable = false)
     private String role = "admin";

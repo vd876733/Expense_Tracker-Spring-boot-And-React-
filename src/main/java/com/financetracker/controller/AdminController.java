@@ -44,11 +44,11 @@ public class AdminController {
     @PostMapping("/auth")
     public ResponseEntity<?> authenticateAdmin(@RequestBody AdminAuthRequest loginRequest, HttpServletRequest request) {
         try {
-            Admin admin = adminRepository.findByEmail(loginRequest.getEmail()).orElse(null);
+            Admin admin = adminRepository.findByEmail(loginRequest.getEmail().trim().toLowerCase())
+                    .orElseThrow(() -> new RuntimeException("Invalid administrator credentials"));
             
-            if (admin == null || !passwordEncoder.matches(loginRequest.getPassword(), admin.getPasswordHash())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid credentials");
+            if (!passwordEncoder.matches(loginRequest.getPassword().trim(), admin.getPassword())) {
+                throw new RuntimeException("Invalid administrator credentials");
             }
 
             String token = tokenProvider.generateAdminToken(admin.getEmail());
@@ -70,6 +70,9 @@ public class AdminController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                     .body(responseBody);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred during authentication.");
