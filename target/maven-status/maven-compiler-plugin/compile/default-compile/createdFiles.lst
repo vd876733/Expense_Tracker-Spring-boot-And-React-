@@ -34,7 +34,9 @@ com\financetracker\entity\Goal.class
 com\financetracker\controller\AdminController.class
 com\financetracker\controller\BudgetController.class
 com\financetracker\dto\MonthlyIncomeExpenseDTO.class
+com\financetracker\service\ReportService.class
 com\financetracker\controller\ImportController.class
+com\financetracker\controller\ReportController.class
 com\financetracker\repository\ExpenseGroupRepository.class
 com\financetracker\entity\UserCategory.class
 com\financetracker\repository\AdminRepository.class

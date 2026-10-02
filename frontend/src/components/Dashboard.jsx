@@ -6,6 +6,7 @@ import { Menu, History, Sparkles, HandCoins, TrendingUp, LayoutDashboard, ArrowR
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import Grainient from './Grainient';
+import ReportSection from './ReportSection';
 import {
   Dialog,
   DialogTitle,
@@ -2292,10 +2293,7 @@ const Dashboard = ({ onLogout, userId }) => {
 
         {/* REPORTS TAB */}
         {activeTab === 'reports' && (
-          <div className="bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 p-8 rounded-2xl shadow-sm text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reports</h2>
-            <p className="text-gray-500 dark:text-gray-400">Detailed financial reports coming soon.</p>
-          </div>
+          <ReportSection />
         )}
 
         {/* SETTINGS TAB */}
