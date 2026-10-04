@@ -118,6 +118,7 @@ const Dashboard = ({ onLogout, userId }) => {
   });
   const [dateFilter, setDateFilter] = useState('ALL');
   const [transactions, setTransactions] = useState([]);
+  const [analyticsCategory, setAnalyticsCategory] = useState('ALL');
   const [topCategory, setTopCategory] = useState(null);
   const [budgets, setBudgets] = useState([]);
   const [budgetAnalyses, setBudgetAnalyses] = useState([]);
@@ -2177,35 +2178,57 @@ const Dashboard = ({ onLogout, userId }) => {
             </div>
           </div>
 
-          
-
-        
-            
-
-            <Stack spacing={4} sx={{ mb: 4 }}>
-              {/* Expense Chart Section (Category Tools & Spending Breakdown) */}
-              <div className="w-full">
-                <ExpenseChart transactions={transactions} formatCurrency={formatCurrency} />
-              </div>
+          <Stack spacing={4} sx={{ mb: 4 }}>
+            {/* Expense Chart Section (Category Tools & Spending Breakdown) */}
+            <div className="w-full">
+              <ExpenseChart 
+                transactions={transactions} 
+                formatCurrency={formatCurrency} 
+              />
+            </div>
 
               {/* Daily Spending */}
               {isDailySpendingLoading ? (
             <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 flex items-center justify-center h-60  ">
               <p className="text-gray-500 dark:text-gray-300">Loading daily spending...</p>
             </div>
-          ) : (
-            <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100  ">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Spending</h2>
-                <span className="text-sm text-gray-500 dark:text-gray-300">{globalLabel}</span>
+          ) : (() => {
+            let chartDataToUse = dailySpendingChartData;
+            if (analyticsCategory !== 'ALL') {
+              const grouped = {};
+              transactions.filter(t => (t.category || 'Other') === analyticsCategory).forEach(t => {
+                const d = t.date.split('T')[0];
+                grouped[d] = (grouped[d] || 0) + Math.abs(t.amount);
+              });
+              chartDataToUse = Object.entries(grouped).map(([date, total]) => ({ date, total })).sort((a, b) => new Date(a.date) - new Date(b.date));
+            }
+
+            return (
+              <div className="card bg-white dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-900 dark:text-slate-100  ">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Spending</h2>
+                    <select
+                      value={analyticsCategory}
+                      onChange={(e) => setAnalyticsCategory(e.target.value)}
+                      className="h-8 rounded-lg px-2 text-sm font-medium outline-none transition-colors bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="ALL">All Categories</option>
+                      {categories.map((cat) => (
+                        <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className="text-sm text-gray-500 dark:text-gray-300">{globalLabel}</span>
+                </div>
+                <DailySpendingAreaChart
+                  data={chartDataToUse}
+                  title={dailySpendingTitle}
+                  formatValue={formatCurrency}
+                />
               </div>
-              <DailySpendingAreaChart
-                data={dailySpendingChartData}
-                title={dailySpendingTitle}
-                formatValue={formatCurrency}
-              />
-            </div>
-          )}
+            );
+          })()}
 
               {/* Monthly Category Totals */}
               {isMonthlyTotalsLoading ? (

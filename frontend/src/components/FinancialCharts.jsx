@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -14,8 +14,24 @@ import {
 } from 'recharts';
 
 const FinancialCharts = ({ transactions }) => {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const categories = useMemo(() => {
+    const cats = new Set(
+      transactions.filter(t => t.amount < 0).map(t => t.category || 'Other')
+    );
+    return ['All', ...Array.from(cats)];
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    if (selectedCategory === 'All') return transactions;
+    return transactions.filter(t => 
+      t.amount > 0 || (t.category || 'Other') === selectedCategory
+    );
+  }, [transactions, selectedCategory]);
+
   // Process data for Pie Chart: Expenses by Category
-  const expenseData = transactions
+  const expenseData = filteredTransactions
     .filter((t) => t.amount < 0)
     .reduce((acc, t) => {
       const category = t.category || 'Other';
@@ -29,11 +45,11 @@ const FinancialCharts = ({ transactions }) => {
   }));
 
   // Process data for Bar Chart: Income vs Expenses
-  const totalIncome = transactions
+  const totalIncome = filteredTransactions
     .filter((t) => t.amount > 0)
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpenses = transactions
+  const totalExpenses = filteredTransactions
     .filter((t) => t.amount < 0)
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
@@ -64,7 +80,20 @@ const FinancialCharts = ({ transactions }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 Financial Analytics</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h2 className="text-2xl font-bold text-gray-900">📊 Financial Analytics</h2>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-700 bg-white min-w-[150px]"
+        >
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat === 'All' ? 'All Categories' : cat}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pie Chart: Expenses by Category */}
