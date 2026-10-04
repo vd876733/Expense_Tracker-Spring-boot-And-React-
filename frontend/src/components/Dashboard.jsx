@@ -35,6 +35,7 @@ import CsvImport from './CsvImport';
 import AddTransactionModal from './AddTransactionModal';
 import SmartInsights from './SmartInsights';
 import MonthlyCategoryDoughnut from './MonthlyCategoryDoughnut';
+import CategoryRadialChart from './CategoryRadialChart';
 import DailySpendingAreaChart from './DailySpendingAreaChart';
 import ThemeToggle from './ThemeToggle';
 import SettlementPage from './SettlementPage';
@@ -42,6 +43,7 @@ import BudgetSection from './BudgetSection';
 import Login from './Login';
 import GoalsPage from './GoalsPage';
 import DotField from './DotField';
+import TransactionCalendar from './TransactionCalendar';
 const demoData = {
   transactions: [
     { id: 'd1', description: 'Whole Foods Market', amount: 145.20, date: new Date().toISOString(), category: 'Food', type: 'expense' },
@@ -1559,113 +1561,60 @@ const Dashboard = ({ onLogout, userId }) => {
         {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && (
           <div className="space-y-8 mb-8">
-            {/* Greeting & Action Buttons Row */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-              Welcome, {googleUser ? googleUser.name.split(' ')[0] : 'Varad'}!
-            </h1>
-            <p className="text-gray-600 dark:text-slate-400 mt-1 font-medium">
-              Here's your financial overview for this month.
-            </p>
-          </div>
-          <div className="flex items-center flex-wrap md:flex-nowrap gap-2">
-            {/* Action buttons removed as requested */}
-          </div>
-        </div>
+            {/* Greeting Banner */}
+            <div className="relative overflow-hidden rounded-2xl py-4 px-6 sm:py-5 sm:px-8 mb-8 shadow-lg flex items-center justify-between border border-blue-900/30 dark:border-blue-800/50">
+              {/* Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#3b82f6]"></div>
+              
+              <div className="relative z-10">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-1">
+                  Welcome, {googleUser ? googleUser.name.split(' ')[0].toUpperCase() : 'VARAD'} !
+                </h1>
+                <p className="text-blue-100 font-medium text-xs sm:text-sm">
+                  Here's your financial overview for this month.
+                </p>
+              </div>
 
-        {/* SmartInsights Replacement: 5-Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
-          {/* Top Spending Category */}
-          <div className="bg-blue-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-blue-100 dark:border-slate-700/60">
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-blue-700 dark:text-slate-300">Top Spending</span>
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-lg shadow-sm">
-                <Zap size={16} className="text-blue-600 dark:text-blue-300" />
-              </div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-blue-900 dark:text-slate-100 truncate">
-                {topCategory ? topCategory.category : 'N/A'}
-              </div>
-              <div className="text-sm text-blue-600 dark:text-slate-400 mt-1">
-                {topCategory ? formatCurrency(topCategory.total) : formatCurrency(0)}
-              </div>
-            </div>
-          </div>
+              {/* Decorative Wallet Illustration */}
+              <div className="hidden sm:flex relative z-10 items-center justify-center mr-4 sm:mr-8 scale-[0.80] origin-right">
+                  <div className="relative w-40 h-24">
+                    {/* Leaves Background */}
+                    <div className="absolute top-2 -right-4 text-emerald-400 transform rotate-45 opacity-80">
+                       <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c0 0-8-6-8-12a8 8 0 1 1 16 0c0 6-8 12-8 12z" opacity="0.4"/><path d="M12 22c0 0-4-6-4-12a4 4 0 1 1 8 0c0 6-4 12-4 12z" opacity="0.6"/></svg>
+                    </div>
+                    <div className="absolute bottom-2 -left-4 text-emerald-400 transform -rotate-45 opacity-80 z-0">
+                       <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c0 0-8-6-8-12a8 8 0 1 1 16 0c0 6-8 12-8 12z" opacity="0.4"/></svg>
+                    </div>
+                    
+                    {/* Wallet Body */}
+                    <div className="absolute bottom-0 right-0 w-36 h-20 bg-[#6366f1] rounded-2xl shadow-xl flex items-center p-3 border-t-2 border-indigo-400 z-10">
+                       <div className="w-full h-full border-2 border-indigo-400/40 rounded-xl"></div>
+                       {/* Wallet clasp */}
+                       <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-10 bg-[#4f46e5] rounded-l-xl shadow-lg flex items-center justify-center border-l-2 border-y-2 border-indigo-400/40">
+                          <div className="w-2 h-2 rounded-full bg-white/80"></div>
+                       </div>
+                    </div>
 
-          {/* Spending Alert */}
-          <div className="bg-pink-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-pink-100 dark:border-slate-700/60">
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-pink-700 dark:text-slate-300">Spending Alert</span>
-              <div className="p-1.5 bg-pink-100 dark:bg-pink-900/50 rounded-lg shadow-sm">
-                <AlertTriangle size={16} className="text-pink-600 dark:text-pink-300" />
-              </div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-pink-900 dark:text-slate-100">
-                {spendingChange.percentageChange > 0 ? '+' : ''}{spendingChange.percentageChange.toFixed(1)}%
-              </div>
-              <div className="text-sm text-pink-600 dark:text-slate-400 mt-1">
-                vs last month
-              </div>
-            </div>
-          </div>
+                    {/* Coins */}
+                    <div className="absolute -top-3 left-8 w-12 h-12 bg-gradient-to-br from-[#fcd34d] to-[#f59e0b] rounded-full border-2 border-[#fef3c7] flex items-center justify-center shadow-lg transform -rotate-12 z-0">
+                       <span className="text-[#92400e] font-bold text-xl">₹</span>
+                    </div>
+                    <div className="absolute -bottom-4 right-6 w-10 h-10 bg-gradient-to-br from-[#fcd34d] to-[#f59e0b] rounded-full border-2 border-[#fef3c7] flex items-center justify-center shadow-lg transform rotate-12 z-20">
+                       <span className="text-[#92400e] font-bold text-lg">₹</span>
+                    </div>
 
-          {/* Savings Trend */}
-          <div className="bg-emerald-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-emerald-100 dark:border-slate-700/60">
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-emerald-700 dark:text-slate-300">Savings Trend</span>
-              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg shadow-sm">
-                <TrendingUp size={16} className="text-emerald-600 dark:text-emerald-300" />
+                    {/* Sparkles */}
+                    <div className="absolute top-2 left-0 text-amber-300 opacity-80">
+                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+                    </div>
+                    <div className="absolute top-8 right-0 text-amber-300 opacity-80">
+                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+                    </div>
+                  </div>
               </div>
             </div>
-            <div>
-              <div className="text-xl font-bold text-emerald-900 dark:text-slate-100">
-                {formatCurrency(income - totalSpent)}
-              </div>
-              <div className="text-sm text-emerald-600 dark:text-slate-400 mt-1">
-                Net savings
-              </div>
-            </div>
-          </div>
 
-          {/* Budget Progress */}
-          <div className="bg-purple-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-purple-100 dark:border-slate-700/60">
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-purple-700 dark:text-slate-300">Budget Progress</span>
-              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/50 rounded-lg shadow-sm">
-                <Target size={16} className="text-purple-600 dark:text-purple-300" />
-              </div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-purple-900 dark:text-slate-100">
-                {budgets.length > 0 ? `${((totalSpent / (budgets.reduce((sum, b) => sum + Number(b.monthlyLimit || 0), 0) || 1)) * 100).toFixed(1)}%` : 'N/A'}
-              </div>
-              <div className="text-sm text-purple-600 dark:text-slate-400 mt-1 truncate">
-                {budgets.length > 0 ? 'of total limit' : 'No budgets set'}
-              </div>
-            </div>
-          </div>
 
-          {/* Projected Total */}
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col justify-between border border-slate-200 dark:border-slate-700/60">
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Projected Total</span>
-              <div className="p-1.5 bg-slate-200 dark:bg-slate-700/50 rounded-lg shadow-sm">
-                <Calendar size={16} className="text-slate-600 dark:text-slate-300" />
-              </div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {formatCurrency(new Date().getDate() > 0 ? (totalSpent / new Date().getDate()) * new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() : totalSpent)}
-              </div>
-              <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Estimated this month
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Error Message */}
         {error && (
@@ -1770,6 +1719,177 @@ const Dashboard = ({ onLogout, userId }) => {
               </div>
             </div>
           </div>
+
+          {/* Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <div className="bg-white dark:bg-slate-800/50 rounded-xl p-5 border border-slate-200/60 dark:border-gray-700/60 shadow-sm flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Recent Transactions</h3>
+                  <button 
+                    onClick={() => setActiveTab('transactions')}
+                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    View All
+                  </button>
+                </div>
+                {transactions.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                    <p className="text-slate-500 dark:text-slate-400 mb-4">No recent transactions found.</p>
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      + Add Transaction
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {transactions.slice(0, 5).map((t) => {
+                      const isIncome = t.type === 'income' || ['Income', 'Salary'].includes(t.category);
+                      const iconText = t.category ? t.category.charAt(0).toUpperCase() : '?';
+                      return (
+                        <div key={t.id} className="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600/50">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                              {getCategoryEmoji ? getCategoryEmoji(t.category) : iconText}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t.description}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className={`text-sm font-bold ${isIncome ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                              {isIncome ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
+                            </span>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => handleDelete(t.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Secondary Metric Cards (Moved beside Category Breakdown) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                {/* Top Spending Category */}
+                <div className="bg-blue-50 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col justify-between border border-blue-100 dark:border-slate-700/60">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm font-semibold text-blue-700 dark:text-slate-300">Top Spending</span>
+                    <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-lg shadow-sm">
+                      <Zap size={16} className="text-blue-600 dark:text-blue-300" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-blue-900 dark:text-slate-100 truncate">
+                      {topCategory ? topCategory.category : 'N/A'}
+                    </div>
+                    <div className="text-sm text-blue-600 dark:text-slate-400 mt-1">
+                      {topCategory ? formatCurrency(topCategory.total) : formatCurrency(0)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spending Alert */}
+                <div className="bg-pink-50 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col justify-between border border-pink-100 dark:border-slate-700/60">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm font-semibold text-pink-700 dark:text-slate-300">Spending Alert</span>
+                    <div className="p-1.5 bg-pink-100 dark:bg-pink-900/50 rounded-lg shadow-sm">
+                      <AlertTriangle size={16} className="text-pink-600 dark:text-pink-300" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-pink-900 dark:text-slate-100">
+                      {spendingChange.percentageChange > 0 ? '+' : ''}{spendingChange.percentageChange.toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-pink-600 dark:text-slate-400 mt-1">
+                      vs last month
+                    </div>
+                  </div>
+                </div>
+
+                {/* Savings Trend */}
+                <div className="bg-emerald-50 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col justify-between border border-emerald-100 dark:border-slate-700/60">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm font-semibold text-emerald-700 dark:text-slate-300">Savings Trend</span>
+                    <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg shadow-sm">
+                      <TrendingUp size={16} className="text-emerald-600 dark:text-emerald-300" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-emerald-900 dark:text-slate-100">
+                      {formatCurrency(income - totalSpent)}
+                    </div>
+                    <div className="text-sm text-emerald-600 dark:text-slate-400 mt-1">
+                      Net savings
+                    </div>
+                  </div>
+                </div>
+
+                {/* Budget Progress */}
+                <div className="bg-purple-50 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col justify-between border border-purple-100 dark:border-slate-700/60">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm font-semibold text-purple-700 dark:text-slate-300">Budget Progress</span>
+                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/50 rounded-lg shadow-sm">
+                      <Target size={16} className="text-purple-600 dark:text-purple-300" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-purple-900 dark:text-slate-100">
+                      {budgets.length > 0 ? `${((totalSpent / (budgets.reduce((sum, b) => sum + Number(b.monthlyLimit || 0), 0) || 1)) * 100).toFixed(1)}%` : 'N/A'}
+                    </div>
+                    <div className="text-sm text-purple-600 dark:text-slate-400 mt-1 truncate">
+                      {budgets.length > 0 ? 'of total limit' : 'No budgets set'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Projected Total */}
+                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col justify-between border border-slate-200 dark:border-slate-700/60">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Projected Total</span>
+                    <div className="p-1.5 bg-slate-200 dark:bg-slate-700/50 rounded-lg shadow-sm">
+                      <Calendar size={16} className="text-slate-600 dark:text-slate-300" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                      {formatCurrency(new Date().getDate() > 0 ? (totalSpent / new Date().getDate()) * new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() : totalSpent)}
+                    </div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      Estimated this month
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              <TransactionCalendar transactions={transactions} formatCurrency={formatCurrency} />
+              
+              {/* Monthly Category Totals */}
+              {isMonthlyTotalsLoading ? (
+                <div className="bg-white dark:bg-slate-800/50 dark:border-slate-700/60 rounded-2xl border border-slate-200/60 shadow-lg flex flex-col items-center justify-center p-5 min-h-[300px]">
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">Loading totals...</p>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-800/50 dark:border-slate-700/60 rounded-2xl border border-slate-200/60 shadow-lg p-5 h-full">
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">Category Breakdown</h3>
+                  <div className="h-[250px] w-full flex items-center justify-center">
+                    <CategoryRadialChart data={monthlyCategoryTotals} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
 
           </Stack>
           </div>
@@ -2238,6 +2358,7 @@ const Dashboard = ({ onLogout, userId }) => {
           ) : (
             <MonthlyCategoryDoughnut data={monthlyCategoryTotals} />
           )}
+
             </Stack>
 
             <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }} className="dark:bg-slate-800 dark:text-white">
